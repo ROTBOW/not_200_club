@@ -1,0 +1,7 @@
+.venv
+
+# we don't want the target file to be pushed
+/target
+
+# res either
+/res
