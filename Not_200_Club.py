@@ -91,7 +91,7 @@ class Not200Club:
         
         return url
     
-    def __get_issues_from_url(self, url: str) -> dict:
+    def __get_issues_from_url(self, url: str, seeker: str) -> dict:
         """
         This function takes a URL as input and returns a dictionary containing any issues found with the
         URL, such as a slow response time or a non-200 status code.
@@ -113,7 +113,7 @@ class Not200Club:
                 if res.status_code != 200:
                     site_issues['status'] = res.status_code
             except Exception as e:
-                print('***** BAD URL *****', url, e)
+                print('***** BAD URL *****', seeker, e)
                 site_issues['bad_url'] = str(e)
         else:
             site_issues['no-link'] = True
@@ -133,7 +133,7 @@ class Not200Club:
             with alive_bar(len(self.sites_by_coach[coach]), title=f'Checking {coach}\'s Seekers') as bar:
                 for seeker in self.sites_by_coach[coach]:
                     url = self.__validate_url(self.sites_by_coach[coach][seeker])
-                    site_issues = self.__get_issues_from_url(url)
+                    site_issues = self.__get_issues_from_url(url, seeker)
                         
                     if len(site_issues) != 0:
                         sheet.write(f'A{col}', seeker)
