@@ -72,11 +72,60 @@ class Not200Club:
                 self.sites_by_coach[curr_row['coach']][curr_row['seeker']] = curr_row['url']
                 bar()
     
+    def __validate_url(self, url: str) -> str:
+        """
+        This function validates a URL by adding 'https://' to the beginning if it is not already
+        present.
+        
+        :param url: The parameter `url` is a string that represents a URL
+        :type url: str
+        :return: a string that is either the input `url` if it starts with 'https://', or a modified
+        version of the input `url` with 'https://' added to the beginning if it does not start with
+        'https://'. If the input `url` is an empty string, the function returns an empty string.
+        """
+        
+        if not url:
+            return ''
+        
+        if not url.startswith('https://'):
+            return 'https://' + url
+        
+        return url
+    
+    def __get_issues_from_url(self, url: str) -> dict:
+        """
+        This function takes a URL as input and returns a dictionary containing any issues found with the
+        URL, such as a slow response time or a non-200 status code.
+        
+        :param url: A string representing the URL of a website to be checked for issues
+        :type url: str
+        :return: A dictionary containing information about any issues encountered while trying to access
+        the provided URL. The dictionary may contain keys such as 'time', 'status', 'bad_url', or
+        'no-link', depending on the specific issue encountered.
+        """
+        site_issues = dict()
+        
+        if url != '':
+            try:
+                res = requests.get(url)
+                if res.elapsed > timedelta(seconds=10):
+                    site_issues['time'] = res.elapsed
+                            
+                if res.status_code != 200:
+                    site_issues['status'] = res.status_code
+            except Exception as e:
+                print('***** BAD URL *****', url, e)
+                site_issues['bad_url'] = str(e)
+        else:
+            site_issues['no-link'] = True
+            
+        return site_issues
+    
     
     def __test_urls_and_write_to_xlsx(self) -> None:
         """
-        This function checks URLs for a list of seekers and writes any issues found to an Excel file,
-        organized by coach.
+        This function iterates through a dictionary of websites by coach, validates the URLs, gets
+        issues from the URLs, and writes the issues to an Excel sheet.
         """
         for coach in self.sites_by_coach:
             col = 1
@@ -84,22 +133,8 @@ class Not200Club:
             
             with alive_bar(len(self.sites_by_coach[coach]), title=f'Checking {coach}\'s Seekers') as bar:
                 for seeker in self.sites_by_coach[coach]:
-                    
-                    site_issues = dict()
-                    if self.sites_by_coach[coach][seeker] != '':
-                        try:
-                            res = requests.get(self.sites_by_coach[coach][seeker])
-                            if res.elapsed > timedelta(seconds=10):
-                                site_issues['time'] = res.elapsed
-                            
-                            if res.status_code != 200:
-                                site_issues['status'] = res.status_code
-                        except Exception as e:
-                            print('***** BAD URL *****', seeker, e)
-                            site_issues['bad_url'] = str(e)
-                    else:
-                        site_issues['no-link'] = True
-                        
+                    url = self.__validate_url(self.sites_by_coach[coach][seeker])
+                    site_issues = self.__get_issues_from_url(url)
                         
                     if len(site_issues) != 0:
                         sheet.write(f'A{col}', seeker)
