@@ -1,12 +1,13 @@
 import os
+import re
 from collections import defaultdict as ddict
 from datetime import date, timedelta
-import requests
+from string import ascii_uppercase
 
+import requests
 import xlsxwriter as xwriter
 from alive_progress import alive_bar
 from openpyxl import load_workbook
-from string import ascii_uppercase
 
 DIR = os.path.dirname(os.path.realpath(__file__))
 TARGET = fr'{DIR}\\target'
@@ -74,20 +75,18 @@ class Not200Club:
     
     def __validate_url(self, url: str) -> str:
         """
-        This function validates a URL by adding 'https://' to the beginning if it is not already
-        present.
+        This function validates a given URL and adds "https://" if it is missing.
         
-        :param url: The parameter `url` is a string that represents a URL
+        :param url: The `url` parameter is a string that represents a URL
         :type url: str
-        :return: a string that is either the input `url` if it starts with 'https://', or a modified
-        version of the input `url` with 'https://' added to the beginning if it does not start with
-        'https://'. If the input `url` is an empty string, the function returns an empty string.
+        :return: a string that represents a validated URL. If the input URL is empty, it returns an
+        empty string. If the input URL does not start with "http://" or "https://", it adds "https://"
+        to the beginning of the URL and returns it. Otherwise, it returns the input URL as is.
         """
-        
         if not url:
             return ''
         
-        if not url.startswith('https://'):
+        if not re.match(r'^http[s]?:\/\/', url):
             return 'https://' + url
         
         return url
