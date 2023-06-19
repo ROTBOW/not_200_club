@@ -28,6 +28,14 @@ class Not200Club:
         self.data = list()
         self.sites_by_coach = ddict(lambda: ddict(dict))
         
+        self.overview = {
+            'sites_status': 0,
+            'sites_time': 0,
+            'sites_bad_url': 0,
+            'sites_no_url': 0,
+            'seeker_with_issue': 0
+        }
+        
     def __idx_to_letter(self, idx: int) -> str:
         """
         This function converts an index number to a corresponding letter in the alphabet using ASCII
@@ -48,7 +56,6 @@ class Not200Club:
             idx = (idx // 26) - 1
 
         return result
-        
         
     def __grab_data_from_file(self) -> None:
         """
@@ -104,14 +111,17 @@ class Not200Club:
     
     def __get_issues_from_urls(self, urls: dict) -> dict:
         """
-        This function takes a URL as input and returns a dictionary containing any issues found with the
-        URL, such as a slow response time or a non-200 status code.
+        This function takes in a dictionary of URLs and returns a dictionary of issues for each URL,
+        including response time, status code, and bad URLs.
         
-        :param url: A string representing the URL of a website to be checked for issues
-        :type url: str
-        :return: A dictionary containing information about any issues encountered while trying to access
-        the provided URL. The dictionary may contain keys such as 'time', 'status', 'bad_url', or
-        'no-link', depending on the specific issue encountered.
+        :param urls: A dictionary where the keys are project names and the values are URLs associated
+        with those projects
+        :type urls: dict
+        :return: a dictionary containing information about issues with URLs. The keys of the dictionary
+        are project names, and the values are dictionaries containing information about issues with the
+        corresponding URL. The information includes the time it took to get a response from the URL, the
+        status code of the response, and any errors that occurred while trying to access the URL. The
+        function also updates a separate dictionary called "overview
         """
         site_issues = ddict(dict)
         
@@ -121,13 +131,17 @@ class Not200Club:
                     res = requests.get(url)
                     if res.elapsed > timedelta(seconds=10):
                         site_issues[proj]['time'] = res.elapsed
+                        self.overview['sites_time'] += 1
                                 
                     if res.status_code != 200:
                         site_issues[proj]['status'] = res.status_code
+                        self.overview['sites_status'] += 1
                 except Exception as e:
                     site_issues[proj]['bad_url'] = str(e)
+                    self.overview['sites_bad_url'] += 1
             else:
                 site_issues[proj]['no-link'] = True
+                self.overview['sites_no_url'] += 1
             
         return site_issues
     
@@ -168,6 +182,7 @@ class Not200Club:
                     site_issues = self.__get_issues_from_urls(urls)
                         
                     if self.__has_issues(site_issues):
+                        self.overview['seeker_with_issue'] += 1
                         row = 2
                         sheet.write(f'A{col}', seeker)
                         sheet.write(f'B{col}', status)
@@ -181,6 +196,28 @@ class Not200Club:
                         col += 1
                     bar()
                 
+    def __fill_overview(self) -> None:
+        """
+        This function fills in an Excel sheet with data related to various issues found during a website
+        check.
+        """
+        sheet = self.workbook._add_sheet('Overview')
+        
+        sheet.write('A1', 'TOTAL SEEKERS WITH ISSUES')
+        sheet.write('B1', self.overview['seeker_with_issue'])
+        
+        sheet.write('A2', 'TOTAL SITES WITH TIMES 10s>')
+        sheet.write('B2', self.overview['sites_time'])
+        
+        sheet.write('A3', 'TOTAL SITES WITH NO URLS')
+        sheet.write('B3', self.overview['sites_no_url'])
+        
+        sheet.write('A4', 'TOTAL SITES WITH BAD URLS')
+        sheet.write('B4', self.overview['sites_bad_url'])
+        
+        sheet.write('A5', 'TOTAL SITES WITH BAD STATUS')
+        sheet.write('B5', self.overview['sites_status'])
+        
         
     
     def main(self) -> None:
@@ -190,6 +227,7 @@ class Not200Club:
         """
         self.__grab_data_from_file()
         self.__test_urls_and_write_to_xlsx()
+        self.__fill_overview()
         
         
  
