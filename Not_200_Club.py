@@ -12,7 +12,7 @@ from openpyxl import load_workbook
 DIR = os.path.dirname(os.path.realpath(__file__))
 TARGET = fr'{DIR}\\target'
 RES = fr'{DIR}\\res'
-    
+
 class Not200Club:
     
     def __init__(self, workbook) -> None:
@@ -26,7 +26,7 @@ class Not200Club:
         """
         self.workbook = workbook
         self.data = list()
-        self.sites_by_coach = ddict(dict)
+        self.sites_by_coach = ddict(lambda: ddict(dict))
         
     def __idx_to_letter(self, idx: int) -> str:
         """
@@ -52,25 +52,36 @@ class Not200Club:
         
     def __grab_data_from_file(self) -> None:
         """
-        This function reads data from an Excel file and populates a dictionary with the data.
+        This function reads data from an Excel file in the target folder and populates a dictionary with the data.
         """
         target_file = os.listdir(TARGET)[0]
         data = load_workbook(fr'{TARGET}\\{target_file}')
         sheet = data.active
 
-        with alive_bar(sheet.max_row-1, title="grabing data...") as bar:
+        with alive_bar(sheet.max_row-1, title="Grabing Data...") as bar:
             for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row):
                 curr_row = dict()
                 for idx, cell in enumerate(row):
-                    if idx == 0:
-                        curr_row['seeker'] = cell.value
-                    elif idx == 1:
-                        curr_row['coach'] = cell.value if cell.value != ' ' else 'Placements'
-                    else:
-                        curr_row['url'] = cell.value
                     
+                    data_list = {
+                        0: 'seeker',
+                        1: 'coach',
+                        2: 'status',
+                        3: 'solo',
+                        4: 'capstone',
+                        5: 'group'
+                    }
+                    
+                    val = cell.value
+                    if not val and idx == 1:
+                        val = cell.value if cell.value != ' ' else 'Placements'
+                    
+                    curr_row[data_list[idx]] = val
+                    
+                        
                 
-                self.sites_by_coach[curr_row['coach']][curr_row['seeker']] = curr_row['url']
+                for proj in ['status', 'solo', 'capstone', 'group']:
+                    self.sites_by_coach[curr_row['coach']][curr_row['seeker']][proj] = curr_row[proj]
                 bar()
     
     def __validate_url(self, url: str) -> str:
@@ -91,7 +102,7 @@ class Not200Club:
         
         return url
     
-    def __get_issues_from_url(self, url: str, seeker: str) -> dict:
+    def __get_issues_from_urls(self, urls: dict) -> dict:
         """
         This function takes a URL as input and returns a dictionary containing any issues found with the
         URL, such as a slow response time or a non-200 status code.
@@ -102,24 +113,40 @@ class Not200Club:
         the provided URL. The dictionary may contain keys such as 'time', 'status', 'bad_url', or
         'no-link', depending on the specific issue encountered.
         """
-        site_issues = dict()
+        site_issues = ddict(dict)
         
-        if url != '':
-            try:
-                res = requests.get(url)
-                if res.elapsed > timedelta(seconds=10):
-                    site_issues['time'] = res.elapsed
-                            
-                if res.status_code != 200:
-                    site_issues['status'] = res.status_code
-            except Exception as e:
-                print('***** BAD URL *****', seeker, e)
-                site_issues['bad_url'] = str(e)
-        else:
-            site_issues['no-link'] = True
+        for proj, url in urls.items():
+            if url != '':
+                try:
+                    res = requests.get(url)
+                    if res.elapsed > timedelta(seconds=10):
+                        site_issues[proj]['time'] = res.elapsed
+                                
+                    if res.status_code != 200:
+                        site_issues[proj]['status'] = res.status_code
+                except Exception as e:
+                    site_issues[proj]['bad_url'] = str(e)
+            else:
+                site_issues[proj]['no-link'] = True
             
         return site_issues
     
+    
+    def __has_issues(self, issues: dict):
+        """
+        The function checks if there are any issues in the given dictionary for solo, capstone, and
+        group projects.
+        
+        :param issues: The parameter 'issues' is a dictionary that contains three keys: 'solo',
+        'capstone', and 'group'. The values associated with each key are lists of issues. The function
+        checks if any of these lists have a length greater than zero and returns a boolean value
+        accordingly
+        :type issues: dict
+        :return: a boolean value indicating whether there are any issues in the input dictionary. It
+        checks if the length of the 'solo', 'capstone', and 'group' lists in the 'issues' dictionary are
+        greater than zero, and returns True if at least one of them is non-empty, and False otherwise.
+        """
+        return any([len(issues['solo']), len(issues['capstone']), len(issues['group'])])
     
     def __test_urls_and_write_to_xlsx(self) -> None:
         """
@@ -128,17 +155,29 @@ class Not200Club:
         """
         for coach in self.sites_by_coach:
             col = 1
-            sheet = self.workbook._add_sheet(coach.replace(' ', '_'))
+            sheet = self.workbook._add_sheet(coach)
             
             with alive_bar(len(self.sites_by_coach[coach]), title=f'Checking {coach}\'s Seekers') as bar:
                 for seeker in self.sites_by_coach[coach]:
-                    url = self.__validate_url(self.sites_by_coach[coach][seeker])
-                    site_issues = self.__get_issues_from_url(url, seeker)
+                    status = self.sites_by_coach[coach][seeker]['status']
+                    urls = {
+                        'solo': self.__validate_url(self.sites_by_coach[coach][seeker]['solo']),
+                        'capstone': self.__validate_url(self.sites_by_coach[coach][seeker]['capstone']),
+                        'group': self.__validate_url(self.sites_by_coach[coach][seeker]['group'])
+                    }
+                    site_issues = self.__get_issues_from_urls(urls)
                         
-                    if len(site_issues) != 0:
+                    if self.__has_issues(site_issues):
+                        row = 2
                         sheet.write(f'A{col}', seeker)
-                        for idx, (issue, v) in enumerate(site_issues.items()):
-                            sheet.write(f'{self.__idx_to_letter(idx+1)}{col}', f'{issue}: {v}')
+                        sheet.write(f'B{col}', status)
+                        for proj in ['solo', 'capstone', 'group']:
+                            if site_issues[proj]:
+                                sheet.write(f'{self.__idx_to_letter(row)}{col}', proj)
+                                row += 1
+                                for issue, v in site_issues.items():
+                                    sheet.write(f'{self.__idx_to_letter(row)}{col}', f'{issue}: {v}')
+                                    row += 1
                         col += 1
                     bar()
                 
