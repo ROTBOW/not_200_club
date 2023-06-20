@@ -2,6 +2,7 @@ import os
 import re
 from collections import defaultdict as ddict
 from datetime import date, timedelta
+from statistics import mean, median, mode
 from string import ascii_uppercase
 
 import requests
@@ -33,7 +34,8 @@ class Not200Club:
             'sites_time': 0,
             'sites_bad_url': 0,
             'sites_no_url': 0,
-            'seeker_with_issue': 0
+            'seeker_with_issue': 0,
+            'time_average': list()
         }
         
     def __idx_to_letter(self, idx: int) -> str:
@@ -132,6 +134,7 @@ class Not200Club:
                     if res.elapsed > timedelta(seconds=10):
                         site_issues[proj]['time'] = res.elapsed
                         self.overview['sites_time'] += 1
+                        self.overview['time_average'].append(res.elapsed.seconds)
                                 
                     if res.status_code != 200:
                         site_issues[proj]['status'] = res.status_code
@@ -190,7 +193,7 @@ class Not200Club:
                             if site_issues[proj]:
                                 sheet.write(f'{self.__idx_to_letter(row)}{col}', proj)
                                 row += 1
-                                for issue, v in site_issues.items():
+                                for issue, v in site_issues[proj].items():
                                     sheet.write(f'{self.__idx_to_letter(row)}{col}', f'{issue}: {v}')
                                     row += 1
                         col += 1
@@ -209,14 +212,19 @@ class Not200Club:
         sheet.write('A2', 'TOTAL SITES WITH TIMES 10s>')
         sheet.write('B2', self.overview['sites_time'])
         
-        sheet.write('A3', 'TOTAL SITES WITH NO URLS')
-        sheet.write('B3', self.overview['sites_no_url'])
+        sheet.write('A3', 'LOADING TIME STATS')
+        sheet.write('B3', f'Mean: {round(mean(self.overview["time_average"]), 2)}s')
+        sheet.write('C3', f'Mode: {round(mode(self.overview["time_average"]), 2)}s')
+        sheet.write('D3', f'Median: {round(median(self.overview["time_average"]), 2)}s')
         
-        sheet.write('A4', 'TOTAL SITES WITH BAD URLS')
-        sheet.write('B4', self.overview['sites_bad_url'])
+        sheet.write('A4', 'TOTAL SITES WITH NO URLS')
+        sheet.write('B4', self.overview['sites_no_url'])
         
-        sheet.write('A5', 'TOTAL SITES WITH BAD STATUS')
-        sheet.write('B5', self.overview['sites_status'])
+        sheet.write('A5', 'TOTAL SITES WITH BAD URLS')
+        sheet.write('B5', self.overview['sites_bad_url'])
+        
+        sheet.write('A6', 'TOTAL SITES WITH BAD STATUS')
+        sheet.write('B6', self.overview['sites_status'])
         
         
     
