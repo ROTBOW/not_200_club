@@ -17,7 +17,9 @@ This is something I want to change, options include:
 It will output to a folder called res, if there is no res folder the script will create one.
 The script will have to complete before it creates the output file.
 
-* [ ] Create a universal sheet for all projects
-    * [ ] How many seekers took longer than 10 sec
-    * [ ] How many seekers are not getting 200s
-    * [ ] How many no-URLs and bad-URLs
+* [X] Create a universal sheet for all projects
+    * [X] How many seekers took longer than 10 sec
+    * [X] How many seekers are not getting 200s
+    * [X] How many no-URLs and bad-URLs
+
+* [ ] make the get request async to impove script run times

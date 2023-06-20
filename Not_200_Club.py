@@ -1,6 +1,7 @@
 import os
 import re
 from collections import defaultdict as ddict
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
 from statistics import mean, median, mode
 from string import ascii_uppercase
@@ -149,6 +150,55 @@ class Not200Club:
             
         return site_issues
     
+    def __get_issues_from_url(self, data: tuple) -> dict:
+        """
+        This function takes in a dictionary of URLs and returns a dictionary of issues for each URL,
+        including response time, status code, and bad URLs.
+        
+        :param urls: A dictionary where the keys are project names and the values are URLs associated
+        with those projects
+        :type urls: dict
+        :return: a dictionary containing information about issues with URLs. The keys of the dictionary
+        are project names, and the values are dictionaries containing information about issues with the
+        corresponding URL. The information includes the time it took to get a response from the URL, the
+        status code of the response, and any errors that occurred while trying to access the URL. The
+        function also updates a separate dictionary called "overview
+        """
+        proj, url = data
+        site_issues = {proj: dict()}
+        
+        if url != '':
+            try:
+                res = requests.get(url)
+                if res.elapsed > timedelta(seconds=10):
+                    site_issues[proj]['time'] = res.elapsed
+                    self.overview['sites_time'] += 1
+                            
+                if res.status_code != 200:
+                    site_issues[proj]['status'] = res.status_code
+                    self.overview['sites_status'] += 1
+            except Exception as e:
+                site_issues[proj]['bad_url'] = str(e)
+                self.overview['sites_bad_url'] += 1
+        else:
+            site_issues[proj]['no-link'] = True
+            self.overview['sites_no_url'] += 1
+            
+        return site_issues
+    
+    def __get_issues_threading(self, urls: dict) -> dict:
+        issues = dict()
+        
+        with ThreadPoolExecutor(max_workers=3) as pool:
+            futures = list()
+            for data in urls.items():
+                futures.append(pool.submit(self.__get_issues_from_url, data))
+                
+            for f in futures:
+                issues.update(f.result())
+        
+        return issues
+            
     
     def __has_issues(self, issues: dict):
         """
@@ -171,7 +221,8 @@ class Not200Club:
         This function iterates through a dictionary of websites by coach, validates the URLs, gets
         issues from the URLs, and writes the issues to an Excel sheet.
         """
-        for idx, coach in enumerate(self.sites_by_coach):
+        # for coach in self.sites_by_coach:
+        for coach in ['Josiah Leon']:
             col = 1
             sheet = self.workbook._add_sheet(coach)
             
@@ -183,7 +234,7 @@ class Not200Club:
                         'capstone': self.__validate_url(self.sites_by_coach[coach][seeker]['capstone']),
                         'group': self.__validate_url(self.sites_by_coach[coach][seeker]['group'])
                     }
-                    site_issues = self.__get_issues_from_urls(urls)
+                    site_issues = self.__get_issues_threading(urls)
                         
                     if self.__has_issues(site_issues):
                         self.overview['seeker_with_issue'] += 1
