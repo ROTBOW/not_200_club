@@ -4,6 +4,7 @@ from collections import defaultdict as ddict
 from datetime import date, timedelta
 from statistics import mean, median, mode
 from string import ascii_uppercase
+from time import time
 
 import requests
 import xlsxwriter as xwriter
@@ -245,6 +246,9 @@ if __name__ == '__main__':
         os.mkdir(RES)
     
     workbook = xwriter.Workbook(f'res\{date.today()}.xlsx')
+    start = time()
     n2c = Not200Club(workbook)
     n2c.main()
     workbook.close()
+    end = time()
+    print(f'\nTotal Time to complete: {round(end-start, 2)}s')
