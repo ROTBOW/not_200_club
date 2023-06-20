@@ -171,11 +171,11 @@ class Not200Club:
         This function iterates through a dictionary of websites by coach, validates the URLs, gets
         issues from the URLs, and writes the issues to an Excel sheet.
         """
-        for coach in self.sites_by_coach:
+        for idx, coach in enumerate(self.sites_by_coach):
             col = 1
             sheet = self.workbook._add_sheet(coach)
             
-            with alive_bar(len(self.sites_by_coach[coach]), title=f'Checking {coach}\'s Seekers') as bar:
+            with alive_bar(len(self.sites_by_coach[coach]), title=f'({idx+1}\{len(self.sites_by_coach)}) - Checking {coach}\'s Seekers') as bar:
                 for seeker in self.sites_by_coach[coach]:
                     status = self.sites_by_coach[coach][seeker]['status']
                     urls = {
