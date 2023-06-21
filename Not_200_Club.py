@@ -34,6 +34,7 @@ class Not200Club:
         self.data = list()
         self.sites_by_coach = ddict(lambda: ddict(dict))
         self.timeout = timeout
+        self.total_seekers = 0
         
         overview_init = lambda: {'solo': 0, 'capstone': 0, 'group': 0}
         
@@ -75,6 +76,7 @@ class Not200Club:
         target_file = os.listdir(TARGET)[0]
         data = load_workbook(fr'{TARGET}\\{target_file}')
         sheet = data.active
+        self.total_seekers = sheet.max_row-1
 
         with alive_bar(sheet.max_row-1, title="Grabing Data...") as bar:
             for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row):
@@ -229,7 +231,7 @@ class Not200Club:
         sheet = self.workbook._add_sheet('Overview')
         
         sheet.write('A1', 'TOTAL SEEKERS WITH ISSUES')
-        sheet.write('B1', self.overview['seeker_with_issue'])
+        sheet.write('B1', f"{self.overview['seeker_with_issue']}/{self.total_seekers}")
         
         sheet.write('A2', 'SITES WITH TIMES 10s>')
         sheet.write('B2', f'Total: {sum(self.overview["sites_time"].values())}')
