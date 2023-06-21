@@ -35,14 +35,16 @@ class Not200Club:
         self.sites_by_coach = ddict(lambda: ddict(dict))
         self.timeout = timeout
         
+        overview_init = lambda: {'solo': 0, 'capstone': 0, 'group': 0}
+        
         self.overview = {
-            'sites_status': 0,
-            'sites_time': 0,
-            'sites_bad_url': 0,
-            'sites_no_url': 0,
+            'sites_status': overview_init(),
+            'sites_time': overview_init(),
+            'sites_bad_url': overview_init(),
+            'sites_no_url': overview_init(),
             'seeker_with_issue': 0,
             'time_average': list(),
-            'sites_timeout': 0
+            'sites_timeout': overview_init()
         }
         
     def __idx_to_letter(self, idx: int) -> str:
@@ -141,23 +143,23 @@ class Not200Club:
                     res = requests.get(url, timeout=self.timeout)
                     if res.elapsed > timedelta(seconds=10):
                         site_issues[proj]['time'] = res.elapsed
-                        self.overview['sites_time'] += 1
+                        self.overview['sites_time'][proj] += 1
                         self.overview['time_average'].append(res.elapsed.seconds)
                                 
                     if res.status_code != 200:
                         site_issues[proj]['status'] = res.status_code
-                        self.overview['sites_status'] += 1
+                        self.overview['sites_status'][proj] += 1
                         
                 except requests.exceptions.Timeout:
                     site_issues[proj]['timeout'] = f'URL timeout at {self.timeout}s'
-                    self.overview['sites_timeout'] += 1
+                    self.overview['sites_timeout'][proj] += 1
                     
                 except Exception as e:
                     site_issues[proj]['bad_url'] = str(e)
-                    self.overview['sites_bad_url'] += 1
+                    self.overview['sites_bad_url'][proj] += 1
             else:
                 site_issues[proj]['no-link'] = True
-                self.overview['sites_no_url'] += 1
+                self.overview['sites_no_url'][proj] += 1
             
         return {seeker: site_issues} if site_issues else {}
     
@@ -229,8 +231,11 @@ class Not200Club:
         sheet.write('A1', 'TOTAL SEEKERS WITH ISSUES')
         sheet.write('B1', self.overview['seeker_with_issue'])
         
-        sheet.write('A2', 'TOTAL SITES WITH TIMES 10s>')
-        sheet.write('B2', self.overview['sites_time'])
+        sheet.write('A2', 'SITES WITH TIMES 10s>')
+        sheet.write('B2', f'Total: {sum(self.overview["sites_time"].values())}')
+        sheet.write('C2', f'Solo: {self.overview["sites_time"]["solo"]}')
+        sheet.write('D2', f'Capstone: {self.overview["sites_time"]["capstone"]}')
+        sheet.write('E2', f'Group: {self.overview["sites_time"]["group"]}')
         
         sheet.write('A3', 'LOADING TIME STATS')
         if self.overview['time_average']:
@@ -242,20 +247,33 @@ class Not200Club:
             
         
         if self.timeout:
-            sheet.write('A4', 'TOTAL SITES THAT TIMEOUT')
-            sheet.write('B4', str(self.overview['sites_timeout']))
+            sheet.write('A4', 'SITES THAT TIMEOUT')
+            sheet.write('B4', f"Total: {sum(self.overview['sites_timeout'].values())}")
+            sheet.write('C4', f"Solo: {self.overview['sites_timeout']['solo']}")
+            sheet.write('D4', f"Capstone: {self.overview['sites_timeout']['capstone']}")
+            sheet.write('E4', f"Group: {self.overview['sites_timeout']['group']}")
         else:
             sheet.write('A4', 'TIMEOUT NOT SET')
             
         
-        sheet.write('A5', 'TOTAL SITES WITH NO URLS')
-        sheet.write('B5', self.overview['sites_no_url'])
+        sheet.write('A5', 'SITES WITH NO URLS')
+        sheet.write('B5', f"Total: {sum(self.overview['sites_no_url'].values())}")
+        sheet.write('C5', f"Solo: {self.overview['sites_no_url']['solo']}")
+        sheet.write('D5', f"Capstone: {self.overview['sites_no_url']['capstone']}")
+        sheet.write('E5', f"Group: {self.overview['sites_no_url']['group']}")
         
-        sheet.write('A6', 'TOTAL SITES WITH BAD URLS')
-        sheet.write('B6', self.overview['sites_bad_url'])
+        sheet.write('A6', 'SITES WITH BAD URLS')
+        sheet.write('B6', f"Total: {sum(self.overview['sites_bad_url'].values())}")
+        sheet.write('C6', f"Solo: {self.overview['sites_bad_url']['solo']}")
+        sheet.write('D6', f"Capstone: {self.overview['sites_bad_url']['capstone']}")
+        sheet.write('E6', f"Group: {self.overview['sites_bad_url']['group']}")
         
-        sheet.write('A7', 'TOTAL SITES WITH BAD STATUS')
-        sheet.write('B7', self.overview['sites_status'])
+        sheet.write('A7', 'SITES WITH BAD STATUS')
+        sheet.write('B7', f"Total: {sum(self.overview['sites_status'].values())}")
+        sheet.write('C7', f"Solo: {self.overview['sites_status']['solo']}")
+        sheet.write('D7', f"Capstone: {self.overview['sites_status']['capstone']}")
+        sheet.write('E7', f"Group: {self.overview['sites_status']['group']}")
+        
         
         
     
