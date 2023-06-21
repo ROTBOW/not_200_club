@@ -241,9 +241,12 @@ class Not200Club:
             sheet.write('B3', 'No loading issues found')
             
         
-        sheet.write('A4', 'TOTAL SITES THAT TIMEOUT')
-        sheet.write('B4', str(self.overview['sites_timeout']))
-        sheet.write('C4', 'Only applicable if timeout was set')
+        if self.timeout:
+            sheet.write('A4', 'TOTAL SITES THAT TIMEOUT')
+            sheet.write('B4', str(self.overview['sites_timeout']))
+        else:
+            sheet.write('A4', 'TIMEOUT NOT SET')
+            
         
         sheet.write('A5', 'TOTAL SITES WITH NO URLS')
         sheet.write('B5', self.overview['sites_no_url'])
