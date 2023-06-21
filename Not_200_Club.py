@@ -18,18 +18,22 @@ RES = fr'{DIR}\\res'
 
 class Not200Club:
     
-    def __init__(self, workbook) -> None:
+    def __init__(self, workbook, timeout = None) -> None:
         """
-        This is a constructor function that initializes variables including a workbook, a list, and a
-        dictionary.
+        This is the initialization function for a class that takes a workbook and optional timeout
+        parameter, and initializes various data structures and variables.
         
-        :param workbook: The "workbook" parameter is likely a reference to an Excel workbook object that
-        will be used to read or write data to an Excel file. The code is initializing an instance of a
-        class and setting the "workbook" attribute to the passed in workbook object
+        :param workbook: This parameter is an object representing an Excel workbook. It is used to store
+        and manipulate data in an Excel file
+        :param timeout: The timeout parameter is an optional argument that can be passed to the
+        constructor of an object. It specifies the maximum amount of time (in seconds) that the object
+        should wait for a response before timing out. If no response is received within the specified
+        timeout period, an exception is raised.
         """
         self.workbook = workbook
         self.data = list()
         self.sites_by_coach = ddict(lambda: ddict(dict))
+        self.timeout = timeout
         
         self.overview = {
             'sites_status': 0,
@@ -37,7 +41,8 @@ class Not200Club:
             'sites_bad_url': 0,
             'sites_no_url': 0,
             'seeker_with_issue': 0,
-            'time_average': list()
+            'time_average': list(),
+            'sites_timeout': 0
         }
         
     def __idx_to_letter(self, idx: int) -> str:
@@ -113,26 +118,27 @@ class Not200Club:
         
         return url
     
-    def __get_issues_from_urls(self, urls: dict) -> dict:
+    def __get_issues_from_urls(self, seeker: str, urls: dict) -> dict:
         """
-        This function takes in a dictionary of URLs and returns a dictionary of issues for each URL,
-        including response time, status code, and bad URLs.
+        This function takes in a seeker and a dictionary of URLs, and returns a dictionary of issues for
+        each URL, along with an overview of the number of issues encountered.
         
-        :param urls: A dictionary where the keys are project names and the values are URLs associated
-        with those projects
+        :param seeker: The parameter "seeker" is a string that represents the name of the seeker or the
+        person who is running the code
+        :type seeker: str
+        :param urls: The `urls` parameter is a dictionary containing project names as keys and their
+        corresponding URLs as values
         :type urls: dict
-        :return: a dictionary containing information about issues with URLs. The keys of the dictionary
-        are project names, and the values are dictionaries containing information about issues with the
-        corresponding URL. The information includes the time it took to get a response from the URL, the
-        status code of the response, and any errors that occurred while trying to access the URL. The
-        function also updates a separate dictionary called "overview
+        :return: a dictionary containing the issues found in the provided URLs. If no issues are found,
+        an empty dictionary is returned. The dictionary is nested within another dictionary with the key
+        'seeker'.
         """
         site_issues = ddict(dict)
         
         for proj, url in urls.items():
             if url != '':
                 try:
-                    res = requests.get(url)
+                    res = requests.get(url, timeout=self.timeout)
                     if res.elapsed > timedelta(seconds=10):
                         site_issues[proj]['time'] = res.elapsed
                         self.overview['sites_time'] += 1
@@ -141,6 +147,11 @@ class Not200Club:
                     if res.status_code != 200:
                         site_issues[proj]['status'] = res.status_code
                         self.overview['sites_status'] += 1
+                        
+                except requests.exceptions.Timeout:
+                    site_issues[proj]['timeout'] = f'URL timeout at {self.timeout}s'
+                    self.overview['sites_timeout'] += 1
+                    
                 except Exception as e:
                     site_issues[proj]['bad_url'] = str(e)
                     self.overview['sites_bad_url'] += 1
@@ -148,113 +159,70 @@ class Not200Club:
                 site_issues[proj]['no-link'] = True
                 self.overview['sites_no_url'] += 1
             
-        return site_issues
+        return {seeker: site_issues} if site_issues else {}
     
-    def __get_issues_from_url(self, data: tuple) -> dict:
+    def __threading_get_all_issues(self, coach: str) -> dict:
         """
-        This function takes in a dictionary of URLs and returns a dictionary of issues for each URL,
-        including response time, status code, and bad URLs.
+        This function uses multithreading to gather all issues from URLs associated with a given coach.
         
-        :param urls: A dictionary where the keys are project names and the values are URLs associated
-        with those projects
-        :type urls: dict
-        :return: a dictionary containing information about issues with URLs. The keys of the dictionary
-        are project names, and the values are dictionaries containing information about issues with the
-        corresponding URL. The information includes the time it took to get a response from the URL, the
-        status code of the response, and any errors that occurred while trying to access the URL. The
-        function also updates a separate dictionary called "overview
+        :param coach: The coach parameter is a string representing the name of the coach for whom we
+        want to get all the issues
+        :type coach: str
+        :return: a dictionary containing all the issues gathered from the URLs of the seekers assigned
+        to the given coach.
         """
-        proj, url = data
-        site_issues = {proj: dict()}
+        seekers = self.sites_by_coach[coach]
+        all_issues = dict()
         
-        if url != '':
-            try:
-                res = requests.get(url)
-                if res.elapsed > timedelta(seconds=10):
-                    site_issues[proj]['time'] = res.elapsed
-                    self.overview['sites_time'] += 1
-                            
-                if res.status_code != 200:
-                    site_issues[proj]['status'] = res.status_code
-                    self.overview['sites_status'] += 1
-            except Exception as e:
-                site_issues[proj]['bad_url'] = str(e)
-                self.overview['sites_bad_url'] += 1
-        else:
-            site_issues[proj]['no-link'] = True
-            self.overview['sites_no_url'] += 1
-            
-        return site_issues
-    
-    def __get_issues_threading(self, urls: dict) -> dict:
-        issues = dict()
-        
-        with ThreadPoolExecutor(max_workers=3) as pool:
+        with ThreadPoolExecutor(max_workers=20) as pool:
             futures = list()
-            for data in urls.items():
-                futures.append(pool.submit(self.__get_issues_from_url, data))
-                
-            for f in futures:
-                issues.update(f.result())
-        
-        return issues
+            for seeker in seekers:
+                urls = {
+                        'solo': self.__validate_url(seekers[seeker]['solo']),
+                        'capstone': self.__validate_url(seekers[seeker]['capstone']),
+                        'group': self.__validate_url(seekers[seeker]['group'])
+                    }
+                futures.append(pool.submit(self.__get_issues_from_urls, seeker, urls))
             
-    
-    def __has_issues(self, issues: dict):
-        """
-        The function checks if there are any issues in the given dictionary for solo, capstone, and
-        group projects.
+            with alive_bar(len(futures), title=f"Gathering threads for {coach}") as bar:
+                for f in futures:
+                    all_issues.update(f.result())
+                    bar()
         
-        :param issues: The parameter 'issues' is a dictionary that contains three keys: 'solo',
-        'capstone', and 'group'. The values associated with each key are lists of issues. The function
-        checks if any of these lists have a length greater than zero and returns a boolean value
-        accordingly
-        :type issues: dict
-        :return: a boolean value indicating whether there are any issues in the input dictionary. It
-        checks if the length of the 'solo', 'capstone', and 'group' lists in the 'issues' dictionary are
-        greater than zero, and returns True if at least one of them is non-empty, and False otherwise.
-        """
-        return any([len(issues['solo']), len(issues['capstone']), len(issues['group'])])
+        return all_issues
     
     def __test_urls_and_write_to_xlsx(self) -> None:
         """
         This function iterates through a dictionary of websites by coach, validates the URLs, gets
         issues from the URLs, and writes the issues to an Excel sheet.
         """
-        # for coach in self.sites_by_coach:
-        for coach in ['Josiah Leon']:
+        
+        for coach in self.sites_by_coach:
             col = 1
             sheet = self.workbook._add_sheet(coach)
+            all_coach_issues = self.__threading_get_all_issues(coach)
             
-            with alive_bar(len(self.sites_by_coach[coach]), title=f'({idx+1}\{len(self.sites_by_coach)}) - Checking {coach}\'s Seekers') as bar:
-                for seeker in self.sites_by_coach[coach]:
+            
+            if all_coach_issues:
+                for seeker, issues in all_coach_issues.items():
                     status = self.sites_by_coach[coach][seeker]['status']
-                    urls = {
-                        'solo': self.__validate_url(self.sites_by_coach[coach][seeker]['solo']),
-                        'capstone': self.__validate_url(self.sites_by_coach[coach][seeker]['capstone']),
-                        'group': self.__validate_url(self.sites_by_coach[coach][seeker]['group'])
-                    }
-                    site_issues = self.__get_issues_threading(urls)
-                        
-                    if self.__has_issues(site_issues):
-                        self.overview['seeker_with_issue'] += 1
-                        row = 2
-                        sheet.write(f'A{col}', seeker)
-                        sheet.write(f'B{col}', status)
-                        for proj in ['solo', 'capstone', 'group']:
-                            if site_issues[proj]:
-                                sheet.write(f'{self.__idx_to_letter(row)}{col}', proj)
+                    self.overview['seeker_with_issue'] += 1
+                    row = 2
+                    sheet.write(f'A{col}', seeker)
+                    sheet.write(f'B{col}', status)
+                    for proj in ['solo', 'capstone', 'group']:
+                        if issues[proj]:
+                            sheet.write(f'{self.__idx_to_letter(row)}{col}', proj)
+                            row += 1
+                            for issue, v in issues[proj].items():
+                                sheet.write(f'{self.__idx_to_letter(row)}{col}', f'{issue}: {v}')
                                 row += 1
-                                for issue, v in site_issues[proj].items():
-                                    sheet.write(f'{self.__idx_to_letter(row)}{col}', f'{issue}: {v}')
-                                    row += 1
-                        col += 1
-                    bar()
+                    col += 1
+                    
                 
     def __fill_overview(self) -> None:
         """
-        This function fills in an Excel sheet with data related to various issues found during a website
-        check.
+        This function fills in an Excel sheet with various statistics related to website loading issues.
         """
         sheet = self.workbook._add_sheet('Overview')
         
@@ -265,18 +233,26 @@ class Not200Club:
         sheet.write('B2', self.overview['sites_time'])
         
         sheet.write('A3', 'LOADING TIME STATS')
-        sheet.write('B3', f'Mean: {round(mean(self.overview["time_average"]), 2)}s')
-        sheet.write('C3', f'Mode: {round(mode(self.overview["time_average"]), 2)}s')
-        sheet.write('D3', f'Median: {round(median(self.overview["time_average"]), 2)}s')
+        if self.overview['time_average']:
+            sheet.write('B3', f'Mean: {round(mean(self.overview["time_average"]), 2)}s')
+            sheet.write('C3', f'Mode: {round(mode(self.overview["time_average"]), 2)}s')
+            sheet.write('D3', f'Median: {round(median(self.overview["time_average"]), 2)}s')
+        else:
+            sheet.write('B3', 'No loading issues found')
+            
         
-        sheet.write('A4', 'TOTAL SITES WITH NO URLS')
-        sheet.write('B4', self.overview['sites_no_url'])
+        sheet.write('A4', 'TOTAL SITES THAT TIMEOUT')
+        sheet.write('B4', str(self.overview['sites_timeout']))
+        sheet.write('C4', 'Only applicable if timeout was set')
         
-        sheet.write('A5', 'TOTAL SITES WITH BAD URLS')
-        sheet.write('B5', self.overview['sites_bad_url'])
+        sheet.write('A5', 'TOTAL SITES WITH NO URLS')
+        sheet.write('B5', self.overview['sites_no_url'])
         
-        sheet.write('A6', 'TOTAL SITES WITH BAD STATUS')
-        sheet.write('B6', self.overview['sites_status'])
+        sheet.write('A6', 'TOTAL SITES WITH BAD URLS')
+        sheet.write('B6', self.overview['sites_bad_url'])
+        
+        sheet.write('A7', 'TOTAL SITES WITH BAD STATUS')
+        sheet.write('B7', self.overview['sites_status'])
         
         
     
@@ -298,7 +274,7 @@ if __name__ == '__main__':
     
     workbook = xwriter.Workbook(f'res\{date.today()}.xlsx')
     start = time()
-    n2c = Not200Club(workbook)
+    n2c = Not200Club(workbook, timeout = 120)
     n2c.main()
     workbook.close()
     end = time()
