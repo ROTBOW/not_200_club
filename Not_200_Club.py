@@ -276,8 +276,26 @@ class Not200Club:
         sheet.write('D7', f"Capstone: {self.overview['sites_status']['capstone']}")
         sheet.write('E7', f"Group: {self.overview['sites_status']['group']}")
         
+    def __fill_issue_legend(self) -> None:
+        sheet = self.workbook._add_sheet('Issue Legend')
         
+        sheet.write('A1', 'Issue Type')
+        sheet.write('B1', 'Explained')
         
+        sheet.write('A2', 'Status')
+        sheet.write('B2', 'Will most likely be a 404 or a 503 - both mean the site is down')
+        
+        sheet.write('A3', 'Bad URL')
+        sheet.write('B3', 'The site\'s URL doesn\'t work, The script was unable to even try to check it')
+        
+        sheet.write('A4', 'Time')
+        sheet.write('B4', 'The amount of time in seconds it took to get a response from the site - it needs to have taken longer than 10s to be listed')
+        
+        sheet.write('A5', 'Timeout')
+        sheet.write('B5', f'The site took longer than the given timeout({self.timeout}s) and gave up on the site')
+        
+        sheet.write('A5', 'No-link')
+        sheet.write('B5', 'Means there was no url listed in saleforce for that project')
     
     def main(self) -> None:
         """
@@ -287,6 +305,7 @@ class Not200Club:
         self.__grab_data_from_file()
         self.__test_urls_and_write_to_xlsx()
         self.__fill_overview()
+        self.__fill_issue_legend()
         
         
  
