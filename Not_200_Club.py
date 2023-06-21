@@ -277,6 +277,10 @@ class Not200Club:
         sheet.write('E7', f"Group: {self.overview['sites_status']['group']}")
         
     def __fill_issue_legend(self) -> None:
+        """
+        This function creates a legend sheet in a workbook with explanations for different types of
+        issues that can occur while checking a website.
+        """
         sheet = self.workbook._add_sheet('Issue Legend')
         
         sheet.write('A1', 'Issue Type')
