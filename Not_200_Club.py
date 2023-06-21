@@ -84,7 +84,7 @@ class Not200Club:
                     
                     val = cell.value
                     if val == ' ' and idx == 1:
-                        val = 'Placements'
+                        val = 'Placements' 
                     
                     curr_row[data_list[idx]] = val
                     
