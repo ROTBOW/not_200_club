@@ -83,7 +83,7 @@ class Not200Club:
                     }
                     
                     val = cell.value
-                    if not val and idx == 1:
+                    if val == ' ' and idx == 1:
                         val = cell.value if cell.value != ' ' else 'Placements'
                     
                     curr_row[data_list[idx]] = val
