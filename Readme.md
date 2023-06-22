@@ -5,7 +5,7 @@ Hey!
 This script takes a xlsx file from the target folder, (if the folder doesn't exist you will have to create it) it has to be the only file in the target folder.
 
 The xlsx file can be named anything but needs to be formatted in a very specific way. Shown as follows:
-Seeker Name, Coach, URL
+Seeker Name, Coach, Status, solo url, capstone url, group url
 
 <del>
     It can take upwards of 7-9 hours to run, (this is in cases of an excess of 2100+ URLs to test),
