@@ -2,7 +2,7 @@ import os
 import re
 from collections import defaultdict as ddict
 from concurrent.futures import ThreadPoolExecutor
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from statistics import mean, median, mode
 from string import ascii_uppercase
 from time import time
@@ -35,6 +35,7 @@ class Not200Club:
         self.sites_by_coach = ddict(lambda: ddict(dict))
         self.timeout = timeout
         self.total_seekers = 0
+        self.start_time = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
         
         overview_init = lambda: {'solo': 0, 'capstone': 0, 'group': 0}
         
@@ -232,6 +233,7 @@ class Not200Club:
         
         sheet.write('A1', 'TOTAL SEEKERS WITH ISSUES')
         sheet.write('B1', f"{self.overview['seeker_with_issue']}/{self.total_seekers}")
+        sheet.write('D1', f'Script ran at {self.start_time} for this sheet')
         
         sheet.write('A2', 'SITES WITH TIMES 10s>')
         sheet.write('B2', f'Total: {sum(self.overview["sites_time"].values())}')
@@ -285,6 +287,7 @@ class Not200Club:
         
         sheet.write('A1', 'Issue Type')
         sheet.write('B1', 'Explained')
+        sheet.write('D1', f'Script ran at {self.start_time} for this sheet')
         
         sheet.write('A2', 'Status')
         sheet.write('B2', 'Will most likely be a 404 or a 503 - both mean the site is down')
@@ -307,9 +310,9 @@ class Not200Club:
         file.
         """
         self.__grab_data_from_file()
+        self.__fill_issue_legend()
         self.__test_urls_and_write_to_xlsx()
         self.__fill_overview()
-        self.__fill_issue_legend()
         
         
  
