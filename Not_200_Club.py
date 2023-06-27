@@ -326,5 +326,5 @@ if __name__ == '__main__':
     n2c = Not200Club(workbook, timeout = 120)
     n2c.main()
     workbook.close()
-    end = time()
-    print(f'\nTotal Time to complete: {round(end-start, 2)}s')
+    
+    print(f'\nTotal Time to complete: {timedelta(seconds=time()-start)}s')
