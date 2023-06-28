@@ -301,8 +301,8 @@ class Not200Club:
         sheet.write('A5', 'Timeout')
         sheet.write('B5', f'The site took longer than the given timeout({self.timeout}s) and gave up on the site')
         
-        sheet.write('A5', 'No-link')
-        sheet.write('B5', 'Means there was no url listed in saleforce for that project')
+        sheet.write('A6', 'No-link')
+        sheet.write('B6', 'Means there was no url listed in saleforce for that project')
     
     def main(self) -> None:
         """
