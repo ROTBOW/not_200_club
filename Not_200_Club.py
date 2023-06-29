@@ -49,6 +49,26 @@ class Not200Club:
             'sites_timeout': overview_init()
         }
         
+    def __validation_check(self) -> bool:
+        """
+        The function checks if a report file is older than five days and prompts the user to pull a new
+        report if necessary.
+        :return: a boolean value. If the user's response is 'yes' or 'y', it will return True. If the
+        user's response is 'no' or 'n', it will return False.
+        """
+        file_mod_time = os.path.getmtime(f'{TARGET}\\{os.listdir(TARGET)[0]}')
+        file_age = timedelta(seconds=time()-file_mod_time)
+        
+        if file_age > timedelta(days=5):
+            print('Report File is older than five days, consider pulling a new report\nRun script anyways?')
+            while True:
+                ans = input('-> ')
+                if ans.lower() in ['yes', 'y']:
+                    return True
+                elif ans.lower() in ['no', 'n']:
+                    return False
+                print('unknown response, try again\n(ans include y, n)')
+        
     def __idx_to_letter(self, idx: int) -> str:
         """
         This function converts an index number to a corresponding letter in the alphabet using ASCII
@@ -202,7 +222,8 @@ class Not200Club:
         issues from the URLs, and writes the issues to an Excel sheet.
         """
         
-        for coach in self.sites_by_coach:
+        # for coach in self.sites_by_coach:
+        for coach in ['Charis Wanken', 'Taryn Asbury']:
             col = 1
             sheet = self.workbook._add_sheet(coach)
             all_coach_issues = self.__threading_get_all_issues(coach)
@@ -306,13 +327,14 @@ class Not200Club:
     
     def main(self) -> None:
         """
-        The main function grabs data from a file and tests URLs before writing the results to an Excel
-        file.
+        The main function performs various tasks including validation checks, grabbing data from a file,
+        filling an issue legend, testing URLs and writing to an Excel file, and filling an overview.
         """
-        self.__grab_data_from_file()
-        self.__fill_issue_legend()
-        self.__test_urls_and_write_to_xlsx()
-        self.__fill_overview()
+        if self.__validation_check():
+            self.__grab_data_from_file()
+            self.__fill_issue_legend()
+            self.__test_urls_and_write_to_xlsx()
+            self.__fill_overview()
         
         
  
