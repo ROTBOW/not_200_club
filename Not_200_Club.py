@@ -68,6 +68,8 @@ class Not200Club:
                 elif ans.lower() in ['no', 'n']:
                     return False
                 print('unknown response, try again\n(ans include y, n)')
+                
+        return True
         
     def __idx_to_letter(self, idx: int) -> str:
         """
@@ -222,8 +224,8 @@ class Not200Club:
         issues from the URLs, and writes the issues to an Excel sheet.
         """
         
-        # for coach in self.sites_by_coach:
-        for coach in ['Charis Wanken', 'Taryn Asbury']:
+        # for coach in ['Charis Wanken', 'Taryn Asbury']:
+        for coach in self.sites_by_coach:
             col = 1
             sheet = self.workbook._add_sheet(coach)
             all_coach_issues = self.__threading_get_all_issues(coach)
