@@ -246,7 +246,7 @@ class Not200Club:
                                 sheet.write(f'{self.__idx_to_letter(row)}{col}', f'{issue}: {v}')
                                 row += 1
                     col += 1
-                    
+            sheet.autofit()
                 
     def __fill_overview(self) -> None:
         """
@@ -300,6 +300,7 @@ class Not200Club:
         sheet.write('C7', f"Solo: {self.overview['sites_status']['solo']}")
         sheet.write('D7', f"Capstone: {self.overview['sites_status']['capstone']}")
         sheet.write('E7', f"Group: {self.overview['sites_status']['group']}")
+        sheet.autofit()
         
     def __fill_issue_legend(self) -> None:
         """
@@ -326,6 +327,7 @@ class Not200Club:
         
         sheet.write('A6', 'No-link')
         sheet.write('B6', 'Means there was no url listed in saleforce for that project')
+        sheet.autofit()
     
     def main(self) -> None:
         """
