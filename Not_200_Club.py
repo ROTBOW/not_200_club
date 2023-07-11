@@ -224,8 +224,8 @@ class Not200Club:
         issues from the URLs, and writes the issues to an Excel sheet.
         """
         
-        # for coach in ['Charis Wanken', 'Taryn Asbury']:
-        for coach in self.sites_by_coach:
+        # for coach in self.sites_by_coach:
+        for coach in ['Anna Paschall']:
             col = 1
             sheet = self.workbook._add_sheet(coach)
             all_coach_issues = self.__threading_get_all_issues(coach)
@@ -345,7 +345,7 @@ if __name__ == '__main__':
     if not os.path.isdir(RES):
         os.mkdir(RES)
     
-    workbook = xwriter.Workbook(f'res\{date.today()}.xlsx')
+    workbook = xwriter.Workbook(f'res\{"not200club_"+str(date.today())}.xlsx')
     start = time()
     n2c = Not200Club(workbook, timeout = 120)
     n2c.main()
