@@ -12,7 +12,7 @@ Seeker Name, Coach, Status, solo url, capstone url, group url
     best to leave it running in the background. As of now, if the script is stopped or crashes for whatever reason, it will lose all current progress. as the library used to write to the xlsx file can <b>not</b> read and write. only write.
 </del>
 
-With threading the script should only take about an hour to run!, 
+With the threading update, the script should only take about an hour to run, it still can't be interrupted or else all current data will be lost. The shorter runtime should help mitigate this issue to not be a prominent issue however.
 
 It will output to a folder called res, if there is no res folder the script will create one.
 The script will have to complete before it creates the output file.
