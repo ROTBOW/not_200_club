@@ -347,7 +347,6 @@ if __name__ == '__main__':
     if not os.path.isdir(RES):
         os.mkdir(RES)
     
-    # workbook = xwriter.Workbook(f'res\{"not200club_"+str(date.today())}.xlsx')
     workbook = xwriter.Workbook(os.path.join(RES, f'{"not200club_"+str(date.today())}.xlsx'))
     start = time()
     n2c = Not200Club(workbook, timeout = 120)
