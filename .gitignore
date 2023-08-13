@@ -1,10 +1,11 @@
-# we don't want the target file to be pushed
+# we don't want the target file or res foler to be pushed
 /target
-
-# res either
 /res
 
 # misc files & folders
 /.venv
 /old_files
 /.vscode
+
+# screw you macOS
+.DS_Store 

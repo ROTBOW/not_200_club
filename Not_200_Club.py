@@ -13,8 +13,8 @@ from alive_progress import alive_bar
 from openpyxl import load_workbook
 
 DIR = os.path.dirname(os.path.realpath(__file__))
-TARGET = fr'{DIR}\\target'
-RES = fr'{DIR}\\res'
+TARGET = os.path.join(DIR, 'target')
+RES = os.path.join(DIR, 'res')
 
 class Not200Club:
     
@@ -56,7 +56,7 @@ class Not200Club:
         :return: a boolean value. If the user's response is 'yes' or 'y', it will return True. If the
         user's response is 'no' or 'n', it will return False.
         """
-        file_mod_time = os.path.getmtime(f'{TARGET}\\{os.listdir(TARGET)[0]}')
+        file_mod_time = os.path.getmtime(os.path.join(TARGET, f'{os.listdir(TARGET)[0]}'))
         file_age = timedelta(seconds=time()-file_mod_time)
         
         if file_age > timedelta(days=5):
@@ -97,7 +97,7 @@ class Not200Club:
         This function reads data from an Excel file in the target folder and populates a dictionary with the data.
         """
         target_file = os.listdir(TARGET)[0]
-        data = load_workbook(fr'{TARGET}\\{target_file}')
+        data = load_workbook(os.path.join(TARGET, target_file))
         sheet = data.active
         self.total_seekers = sheet.max_row-1
 
@@ -224,8 +224,8 @@ class Not200Club:
         issues from the URLs, and writes the issues to an Excel sheet.
         """
         
-        # for coach in self.sites_by_coach:
-        for coach in ['Anna Paschall']:
+        # for coach in ['Anna Paschall']:
+        for coach in self.sites_by_coach:
             col = 1
             sheet = self.workbook._add_sheet(coach)
             all_coach_issues = self.__threading_get_all_issues(coach)
@@ -347,7 +347,8 @@ if __name__ == '__main__':
     if not os.path.isdir(RES):
         os.mkdir(RES)
     
-    workbook = xwriter.Workbook(f'res\{"not200club_"+str(date.today())}.xlsx')
+    # workbook = xwriter.Workbook(f'res\{"not200club_"+str(date.today())}.xlsx')
+    workbook = xwriter.Workbook(os.path.join(RES, f'{"not200club_"+str(date.today())}.xlsx'))
     start = time()
     n2c = Not200Club(workbook, timeout = 120)
     n2c.main()
