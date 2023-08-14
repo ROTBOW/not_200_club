@@ -12,6 +12,7 @@ import xlsxwriter as xwriter
 from alive_progress import alive_bar
 from openpyxl import load_workbook
 
+# Constants
 DIR = os.path.dirname(os.path.realpath(__file__))
 TARGET = os.path.join(DIR, 'target')
 RES = os.path.join(DIR, 'res')
@@ -340,12 +341,41 @@ class Not200Club:
             self.__test_urls_and_write_to_xlsx()
             self.__fill_overview()
         
+    @classmethod
+    def validate(cls) -> None:
+        """
+        The function `validate` checks if the necessary folders exist, if the target folder is not
+        empty, if the first file in the target folder is not a `.DS_Store` file, and if the file in the
+        target folder is an `.xlsx` file.
+        """
         
+        # Creating output(res) folder if it doesn't exist
+        if not os.path.isdir(RES):
+            os.mkdir(RES)
+            
+        # Creating target folder if it doesn't exist
+        if not os.path.isdir(TARGET):
+            os.mkdir(TARGET)
+            
+        # Check that the target file has is not empty
+        def empty_check() -> None:
+            if len(os.listdir(TARGET)) == 0:
+                raise Exception('TARGET ERROR - The target folder needs to have one report file in it!')
+        empty_check()
+        
+        # Check if the first file in target is ds_store and remove it if so
+        if os.listdir(TARGET)[0] == '.DS_Store':
+            os.remove(os.path.join(TARGET, '.DS_Store'))
+            # check if empty again if we remove the ds_store
+            empty_check()
+            
+        # Checks that the target file is an xlsx file
+        if not os.listdir(TARGET)[0].endswith('.xlsx'):
+            raise Exception(f'INVALID FILE TYPE ERROR - The current file in the target folder is a bad type! it\'s not a xlsx file!\nTrying to read: ({os.listdir(TARGET)[0]})')
  
 
 if __name__ == '__main__':
-    if not os.path.isdir(RES):
-        os.mkdir(RES)
+    Not200Club.validate()
     
     workbook = xwriter.Workbook(os.path.join(RES, f'{"not200club_"+str(date.today())}.xlsx'))
     start = time()
