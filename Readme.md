@@ -6,6 +6,7 @@ This script takes a xlsx file from the target folder, (if the folder doesn't exi
 
 The xlsx file can be named anything but needs to be formatted in a very specific way. Shown as follows:
 Seeker Name, Coach, Status, solo url, capstone url, group url
+You will need to then export it as "details only" which should be an option in SF.
 
 <del>
     It can take upwards of 7-9 hours to run, (this is in cases of an excess of 2100+ URLs to test),
