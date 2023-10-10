@@ -83,7 +83,8 @@ class Not200Club:
         :return: a string that represents the corresponding letter(s) for the given index. The letters
         are determined based on the position of the index in the alphabet, with A being 0, B being 1,
         and so on. The function uses the ascii_uppercase string to map the remainder of the index
-        divided by 26 to the corresponding letter, and then continues to divide the index by
+        divided by 26 to the corresponding letter, and then continues to divide the index by 26 until
+        it reaches 0.
         """
         result = ""
         while idx >= 0:
@@ -202,7 +203,7 @@ class Not200Club:
         seekers = self.sites_by_coach[coach]
         all_issues = dict()
         
-        with ThreadPoolExecutor(max_workers=20) as pool:
+        with ThreadPoolExecutor(max_workers=(os.cpu_count() or 1) * 2) as pool:
             futures = list()
             for seeker in seekers:
                 urls = {

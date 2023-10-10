@@ -6,6 +6,7 @@
 /.venv
 /old_files
 /.vscode
+*.pyc
 
 # screw you macOS
 .DS_Store 
