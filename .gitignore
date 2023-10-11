@@ -1,4 +1,4 @@
-# we don't want the target file or res foler to be pushed
+# we don't want the target file or res folder to be pushed
 /target
 /res
 
