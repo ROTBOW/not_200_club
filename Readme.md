@@ -1,19 +1,26 @@
 # Not 200 Club
 
-Hey!
+This script processes an xlsx file located in the target directory. The directory must contain only this file. If the directory does not exist, it must be created manually.
 
-This script takes a xlsx file from the target folder, (if the folder doesn't exist you will have to create it) it has to be the only file in the target folder.
+The xlsx file, which can have any name, must adhere to a specific format:<br/>
+`Seeker Name, Coach, Status, solo url, capstone url, group url`
 
-The xlsx file can be named anything but needs to be formatted in a very specific way. Shown as follows:
-Seeker Name, Coach, Status, solo url, capstone url, group url
-You will need to then export it as "details only" which should be an option in SF.
+The file should be exported as "details only", an option available in SF.
 
-<del>
-    It can take upwards of 7-9 hours to run, (this is in cases of an excess of 2100+ URLs to test),
-    best to leave it running in the background. As of now, if the script is stopped or crashes for whatever reason, it will lose all current progress. as the library used to write to the xlsx file can <b>not</b> read and write. only write.
-</del>
+The script, enhanced with threading, completes its execution in approximately one hour. Interruptions during this period will result in loss of all current data. However, the reduced runtime minimizes this risk.
 
-With the threading update, the script should only take about an hour to run, it still can't be interrupted or else all current data will be lost. The shorter runtime should help mitigate this issue to not be a prominent issue however.
+The output is directed to a 'res' directory. If this directory does not exist, the script will create it. The output file is generated only after the script has finished executing.
 
-It will output to a folder called res, if there is no res folder the script will create one.
-The script will have to complete before it creates the output file.
+## Instructions:
+1. Place the xlsx file in the target directory. Ensure it is the only file in the directory.
+2. Execute the script.
+3. Allow the script to complete.
+4. Retrieve the output file from the 'res' directory.
+
+## Notes:
+- The script's runtime is approximately one hour.
+- Interruptions or crashes during execution will result in loss of all current data.
+- The output file is generated in the 'res' directory upon script completion.
+- The script will create the 'res' directory if it does not exist.
+
+This document was written with the assistance of CursorBot, a tool powered by GPT-4.
