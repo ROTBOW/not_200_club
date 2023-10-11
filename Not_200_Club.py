@@ -9,9 +9,8 @@ from time import time
 from warnings import simplefilter
 
 import requests
-import xlsxwriter as xwriter
 from alive_progress import alive_bar
-from openpyxl import load_workbook
+import openpyxl
 
 # Constants
 DIR = os.path.dirname(os.path.realpath(__file__))
@@ -20,7 +19,7 @@ RES = os.path.join(DIR, 'res')
 
 class Not200Club:
     
-    def __init__(self, workbook, timeout = None) -> None:
+    def __init__(self, timeout = None) -> None:
         """
         This is the initialization function for a class that takes a workbook and optional timeout
         parameter, and initializes various data structures and variables.
@@ -32,15 +31,17 @@ class Not200Club:
         should wait for a response before timing out. If no response is received within the specified
         timeout period, an exception is raised.
         """
-        self.workbook = workbook
+        self.workbook = openpyxl.Workbook()
+        self.workbook.remove(self.workbook.active)
+        
         self.data = list()
         self.sites_by_coach = ddict(lambda: ddict(dict))
         self.timeout = timeout
         self.total_seekers = 0
         self.start_time = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+        self.output_path = os.path.join(RES, f'{"not200club_"+str(date.today())}.xlsx')
         
         overview_init = lambda: {'solo': 0, 'capstone': 0, 'group': 0}
-        
         self.overview = {
             'sites_status': overview_init(),
             'sites_time': overview_init(),
@@ -73,28 +74,6 @@ class Not200Club:
                 
         return True
         
-    def __idx_to_letter(self, idx: int) -> str:
-        """
-        This function converts an index number to a corresponding letter in the alphabet using ASCII
-        uppercase characters.
-        
-        :param idx: idx is an integer representing the index of a letter in the alphabet. The function
-        is designed to convert this index to its corresponding letter
-        :type idx: int
-        :return: a string that represents the corresponding letter(s) for the given index. The letters
-        are determined based on the position of the index in the alphabet, with A being 0, B being 1,
-        and so on. The function uses the ascii_uppercase string to map the remainder of the index
-        divided by 26 to the corresponding letter, and then continues to divide the index by 26 until
-        it reaches 0.
-        """
-        result = ""
-        while idx >= 0:
-            remainder = idx % 26  # Get the remainder of idx divided by 26
-            result = ascii_uppercase[remainder] + result
-            idx = (idx // 26) - 1
-
-        return result
-        
     def __grab_data_from_file(self) -> None:
         """
         This function reads data from an Excel file in the target folder and populates a dictionary with the data.
@@ -102,7 +81,7 @@ class Not200Club:
         target_file = os.listdir(TARGET)[0]
         
         simplefilter("ignore") # both simplefilter lines supress the style warning openpyxl throws
-        data = load_workbook(os.path.join(TARGET, target_file))
+        data = openpyxl.load_workbook(os.path.join(TARGET, target_file))
         simplefilter("default")
         
         sheet = data.active
@@ -225,16 +204,36 @@ class Not200Club:
         
         return all_issues
     
+    def __create_coach_sheet(self, coach:str):
+        """
+        The function creates a new sheet in a workbook with specified column headers and returns the
+        sheet.
+        
+        :param coach: The "coach" parameter is a string that represents the name of the coach for whom
+        the sheet is being created
+        :type coach: str
+        :return: a sheet object.
+        """
+        sheet = self.workbook.create_sheet(title=coach)
+        
+        sheet.cell(row=1, column=1, value="Seeker Name")
+        sheet.cell(row=1, column=2, value="Seeker Status")
+        sheet.cell(row=1, column=3, value="Solo Issues")
+        sheet.cell(row=1, column=4, value="Capstone Issues")
+        sheet.cell(row=1, column=5, value="Group Issues")
+        
+        return sheet
+    
     def __test_urls_and_write_to_xlsx(self) -> None:
         """
         This function iterates through a dictionary of websites by coach, validates the URLs, gets
         issues from the URLs, and writes the issues to an Excel sheet.
         """
         
-        # for coach in ['Anna Paschall']:
+        # for coach in ['Josiah Leon']:
         for coach in self.sites_by_coach:
-            col = 1
-            sheet = self.workbook._add_sheet(coach)
+            row = 2
+            sheet = self.__create_coach_sheet(coach)
             all_coach_issues = self.__threading_get_all_issues(coach)
             
             
@@ -242,99 +241,88 @@ class Not200Club:
                 for seeker, issues in all_coach_issues.items():
                     status = self.sites_by_coach[coach][seeker]['status']
                     self.overview['seeker_with_issue'] += 1
-                    row = 2
-                    sheet.write(f'A{col}', seeker)
-                    sheet.write(f'B{col}', status)
+                    
+                    col = 3
+                    sheet.cell(row=row, column=1, value=seeker)
+                    sheet.cell(row=row, column=2, value=status)
                     for proj in ['solo', 'capstone', 'group']:
                         if issues[proj]:
-                            sheet.write(f'{self.__idx_to_letter(row)}{col}', proj)
-                            row += 1
-                            for issue, v in issues[proj].items():
-                                sheet.write(f'{self.__idx_to_letter(row)}{col}', f'{issue}: {v}')
-                                row += 1
-                    col += 1
-            sheet.autofit()
+                            val = '\n'.join([f"{key}: {value}" for key, value in issues[proj].items()])
+                        else:
+                            val = 'No Issues Found'
+                            
+                        sheet.cell(row=row, column=col, value=val)
+                        col += 1
+                    row += 1
+                    
+            self.workbook.save(self.output_path)
                 
     def __fill_overview(self) -> None:
         """
         This function fills in an Excel sheet with various statistics related to website loading issues.
         """
-        sheet = self.workbook._add_sheet('Overview')
+        sheet = self.workbook.create_sheet(title='Overview', index=0)
         
-        sheet.write('A1', 'TOTAL SEEKERS WITH ISSUES')
-        sheet.write('B1', f"{self.overview['seeker_with_issue']}/{self.total_seekers}")
-        sheet.write('D1', f'Script ran at {self.start_time} for this sheet')
+        sheet.cell(row=1, column=1, value='TOTAL SEEKERS WITH ISSUES')
+        sheet.cell(row=1, column=2, value=f"{self.overview['seeker_with_issue']}/{self.total_seekers}")
+        sheet.cell(row=1, column=4, value=f'Script ran at {self.start_time} for this sheet')
         
-        sheet.write('A2', 'SITES WITH TIMES 10s>')
-        sheet.write('B2', f'Total: {sum(self.overview["sites_time"].values())}')
-        sheet.write('C2', f'Solo: {self.overview["sites_time"]["solo"]}')
-        sheet.write('D2', f'Capstone: {self.overview["sites_time"]["capstone"]}')
-        sheet.write('E2', f'Group: {self.overview["sites_time"]["group"]}')
+        sheet.cell(row=2, column=1, value='SITES WITH TIMES 10s>')
+        sheet.cell(row=2, column=2, value=f'Total: {sum(self.overview["sites_time"].values())}')
+        sheet.cell(row=2, column=3, value=f'Solo: {self.overview["sites_time"]["solo"]}')
+        sheet.cell(row=2, column=4, value=f'Capstone: {self.overview["sites_time"]["capstone"]}')
+        sheet.cell(row=2, column=5, value=f'Group: {self.overview["sites_time"]["group"]}')
         
-        sheet.write('A3', 'LOADING TIME STATS')
+        sheet.cell(row=3, column=1, value='LOADING TIME STATS')
         if self.overview['time_average']:
-            sheet.write('B3', f'Mean: {round(mean(self.overview["time_average"]), 2)}s')
-            sheet.write('C3', f'Mode: {round(mode(self.overview["time_average"]), 2)}s')
-            sheet.write('D3', f'Median: {round(median(self.overview["time_average"]), 2)}s')
+            sheet.cell(row=3, column=2, value=f'Mean: {round(mean(self.overview["time_average"]), 2)}s')
+            sheet.cell(row=3, column=3, value=f'Mode: {round(mode(self.overview["time_average"]), 2)}s')
+            sheet.cell(row=3, column=4, value=f'Median: {round(median(self.overview["time_average"]), 2)}s')
         else:
-            sheet.write('B3', 'No loading issues found')
+            sheet.cell(row=3, column=2, value='No loading issues found')
             
         
         if self.timeout:
-            sheet.write('A4', 'SITES THAT TIMEOUT')
-            sheet.write('B4', f"Total: {sum(self.overview['sites_timeout'].values())}")
-            sheet.write('C4', f"Solo: {self.overview['sites_timeout']['solo']}")
-            sheet.write('D4', f"Capstone: {self.overview['sites_timeout']['capstone']}")
-            sheet.write('E4', f"Group: {self.overview['sites_timeout']['group']}")
+            sheet.cell(row=4, column=1, value='SITES THAT TIMEOUT')
+            sheet.cell(row=4, column=2, value=f"Total: {sum(self.overview['sites_timeout'].values())}")
+            sheet.cell(row=4, column=3, value=f"Solo: {self.overview['sites_timeout']['solo']}")
+            sheet.cell(row=4, column=4, value=f"Capstone: {self.overview['sites_timeout']['capstone']}")
+            sheet.cell(row=4, column=5, value=f"Group: {self.overview['sites_timeout']['group']}")
         else:
-            sheet.write('A4', 'TIMEOUT NOT SET')
+            sheet.cell(row=4, column=1, value='TIMEOUT NOT SET')
             
-        
-        sheet.write('A5', 'SITES WITH NO URLS')
-        sheet.write('B5', f"Total: {sum(self.overview['sites_no_url'].values())}")
-        sheet.write('C5', f"Solo: {self.overview['sites_no_url']['solo']}")
-        sheet.write('D5', f"Capstone: {self.overview['sites_no_url']['capstone']}")
-        sheet.write('E5', f"Group: {self.overview['sites_no_url']['group']}")
-        
-        sheet.write('A6', 'SITES WITH BAD URLS')
-        sheet.write('B6', f"Total: {sum(self.overview['sites_bad_url'].values())}")
-        sheet.write('C6', f"Solo: {self.overview['sites_bad_url']['solo']}")
-        sheet.write('D6', f"Capstone: {self.overview['sites_bad_url']['capstone']}")
-        sheet.write('E6', f"Group: {self.overview['sites_bad_url']['group']}")
-        
-        sheet.write('A7', 'SITES WITH BAD STATUS')
-        sheet.write('B7', f"Total: {sum(self.overview['sites_status'].values())}")
-        sheet.write('C7', f"Solo: {self.overview['sites_status']['solo']}")
-        sheet.write('D7', f"Capstone: {self.overview['sites_status']['capstone']}")
-        sheet.write('E7', f"Group: {self.overview['sites_status']['group']}")
-        sheet.autofit()
+        for row, group, key in [(5, 'SITES WITH NO URLS', 'sites_no_url'), (6, "SITES WITH BAD URLS", 'sites_bad_url'), (7, 'SITES WITH BAD STATUS', 'sites_status')]:
+            sheet.cell(row=row, column=1, value=group)
+            sheet.cell(row=row, column=2, value=f"Total: {sum(self.overview[key].values())}")
+            sheet.cell(row=row, column=3, value=f"Solo: {self.overview[key]['solo']}")
+            sheet.cell(row=row, column=4, value=f"Capstone: {self.overview[key]['capstone']}")
+            sheet.cell(row=row, column=5, value=f"Group: {self.overview[key]['group']}")
         
     def __fill_issue_legend(self) -> None:
         """
         This function creates a legend sheet in a workbook with explanations for different types of
         issues that can occur while checking a website.
         """
-        sheet = self.workbook._add_sheet('Issue Legend')
+        sheet = self.workbook.create_sheet(title='Issue Legend', index=0)
         
-        sheet.write('A1', 'Issue Type')
-        sheet.write('B1', 'Explained')
-        sheet.write('D1', f'Script ran at {self.start_time} for this sheet')
+        sheet.cell(row=1, column=1, value='Issue Type')
+        sheet.cell(row=1, column=2, value="Explained")
+        sheet.cell(row=1, column=3, value=f'Script ran at {self.start_time} for this sheet')
         
-        sheet.write('A2', 'Status')
-        sheet.write('B2', 'Will most likely be a 404 or a 503 - both mean the site is down')
+        sheet.cell(row=2, column=1, value='Status')
+        sheet.cell(row=2, column=2, value='Will most likely be a 404 or a 503 - both mean the site is down')
         
-        sheet.write('A3', 'Bad URL')
-        sheet.write('B3', 'The site\'s URL doesn\'t work, The script was unable to even try to check it')
+        sheet.cell(row=3, column=1, value='Bad URL')
+        sheet.cell(row=3, column=2, value='The site\'s URL doesn\'t work, The script was unable to even try to check it')
         
-        sheet.write('A4', 'Time')
-        sheet.write('B4', 'The amount of time in seconds it took to get a response from the site - it needs to have taken longer than 10s to be listed')
+        sheet.cell(row=4, column=1, value='Time')
+        sheet.cell(row=4, column=2, value='The amount of time in seconds it took to get a response from the site - it needs to have taken longer than 10s to be listed')
         
-        sheet.write('A5', 'Timeout')
-        sheet.write('B5', f'The site took longer than the given timeout({self.timeout}s) and gave up on the site')
+        sheet.cell(row=5, column=1, value='Timeout')
+        sheet.cell(row=5, column=2, value=f'The site took longer than the given timeout({self.timeout}s) and gave up on the site')
         
-        sheet.write('A6', 'No-link')
-        sheet.write('B6', 'Means there was no url listed in saleforce for that project')
-        sheet.autofit()
+        sheet.cell(row=6, column=1, value='No-link')
+        sheet.cell(row=6, column=2, value='Means there was no url listed in saleforce for that project')
     
     def main(self) -> None:
         """
@@ -343,9 +331,10 @@ class Not200Club:
         """
         if self.__validation_check():
             self.__grab_data_from_file()
-            self.__fill_issue_legend()
             self.__test_urls_and_write_to_xlsx()
+            self.__fill_issue_legend()
             self.__fill_overview()
+            self.workbook.save(self.output_path)
         
     @classmethod
     def validate(cls) -> None:
@@ -382,11 +371,9 @@ class Not200Club:
 
 if __name__ == '__main__':
     Not200Club.validate()
-    
-    workbook = xwriter.Workbook(os.path.join(RES, f'{"not200club_"+str(date.today())}.xlsx'))
+
     start = time()
-    n2c = Not200Club(workbook, timeout = 120)
+    n2c = Not200Club(timeout = 60)
     n2c.main()
-    workbook.close()
     
     print(f'\nTotal Time to complete: {timedelta(seconds=time()-start)}s')
