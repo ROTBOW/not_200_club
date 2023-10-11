@@ -2,10 +2,11 @@ import os
 import re
 from collections import defaultdict as ddict
 from concurrent.futures import ThreadPoolExecutor
-from datetime import date, timedelta, datetime
+from datetime import date, datetime, timedelta
 from statistics import mean, median, mode
 from string import ascii_uppercase
 from time import time
+from warnings import simplefilter
 
 import requests
 import xlsxwriter as xwriter
@@ -99,7 +100,11 @@ class Not200Club:
         This function reads data from an Excel file in the target folder and populates a dictionary with the data.
         """
         target_file = os.listdir(TARGET)[0]
+        
+        simplefilter("ignore") # both simplefilter lines supress the style warning openpyxl throws
         data = load_workbook(os.path.join(TARGET, target_file))
+        simplefilter("default")
+        
         sheet = data.active
         self.total_seekers = sheet.max_row-1
 
