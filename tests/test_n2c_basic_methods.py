@@ -1,4 +1,7 @@
 import pytest
+import sys
+
+sys.path.append('../not_200_club')
 
 from Not_200_Club import Not200Club
 
