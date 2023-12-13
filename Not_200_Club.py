@@ -39,7 +39,7 @@ class Not200Club:
         self.timeout = timeout
         self.total_seekers = 0
         self.start_time = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
-        self.output_path = os.path.join(RES, f'{"not200club_"+str(date.today())}.xlsx')
+        self.output_path = os.path.join(RES, f'{"not200club "+str(date.today())}.xlsx')
         
         overview_init = lambda: {'solo': 0, 'capstone': 0, 'group': 0}
         self.overview = {
