@@ -57,6 +57,9 @@ class Emailer:
                     
                 self.get_data_and_email(sheet, server)
                 
+        print('the following names didn\'t have a email listed')
+        print(self.no_emails)
+                
             
                 
     def get_data_and_email(self, sheet, server) -> None:
