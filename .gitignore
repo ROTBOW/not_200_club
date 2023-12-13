@@ -6,6 +6,7 @@
 /.venv
 /old_files
 /.vscode
+.env
 *.pyc
 
 # screw you macOS
