@@ -56,7 +56,7 @@ class Emailer:
                     continue
                     
                 self.get_data_and_email(sheet, server)
-                break # make sure to remove then when done
+                
             
                 
     def get_data_and_email(self, sheet, server) -> None:
