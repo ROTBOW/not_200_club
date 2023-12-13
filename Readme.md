@@ -20,5 +20,3 @@ The output is directed to a 'res' directory. If this directory does not exist, t
 - The script will save after each coach, if it fails it will have all data up to the last coach it finished
 - The output file is generated in the 'res' directory upon script completion.
 - The script will create the 'res' directory if it does not exist.
-
-This document was written with the assistance of CursorBot, a tool powered by GPT-4.

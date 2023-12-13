@@ -240,8 +240,8 @@ class Not200Club:
         information to an Excel file.
         """
 
-        # for coach in self.sites_by_coach:
-        for coach in ['Anna Paschall']:
+        # for coach in ['Anna Paschall']:
+        for coach in self.sites_by_coach:
             row = 2
             sheet = self.__create_coach_sheet(coach)
             all_coach_issues = self.__threading_get_all_issues(coach)
