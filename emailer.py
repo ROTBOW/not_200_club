@@ -20,7 +20,7 @@ class Emailer:
     
     def __get_recent_file_path(self) -> None:
         """
-        The function `__get_recent_file_path` finds the most recent file in res folder and sets the
+        The function finds the most recent file in res folder and sets the
         `file_path` attribute to the path of that file.
         """
         files = os.listdir(RES)
@@ -34,6 +34,14 @@ class Emailer:
     
     
     def __format_name(self, name:str) -> str:
+        """
+        The function takes a name, converts it to lowercase, and replaces spaces with
+        underscores.
+        
+        :param name: The parameter `name` is a string that represents a person's name
+        :type name: str
+        :return: the name in lowercase with spaces replaced by underscores.
+        """
         return name.lower().replace(' ', '_')
     
     
@@ -43,6 +51,10 @@ class Emailer:
         
         
     def scan_sheets(self) -> None:
+        """
+        The `scan_sheets` function scans through sheets in an Excel workbook, skips certain sheets, and
+        sends data from other sheets via email.
+        """
         workbook = openpyxl.load_workbook(self.file_path)
         context = ssl.create_default_context()
         
@@ -57,12 +69,22 @@ class Emailer:
                     
                 self.get_data_and_email(sheet, server)
                 
-        print('the following names didn\'t have a email listed')
-        print(self.no_emails)
+        if self.no_emails:
+            print('the following names didn\'t have a email listed')
+            print(self.no_emails)
                 
             
                 
     def get_data_and_email(self, sheet, server) -> None:
+        """
+        This function retrieves data from a sheet, analyzes it, and sends an email with a summary of the
+        analysis.
+        
+        :param sheet: The `sheet` parameter is the spreadsheet object that contains the data. It is used
+        to iterate over the rows and retrieve the necessary information for the email
+        :param server: The `server` parameter is the SMTP server object that is used to send the email.
+        It should be an instance of the `smtplib.SMTP` class
+        """
         sender_email = os.getenv('email_user')
         receiver_email = os.getenv(self.__format_name(sheet.title))
         
