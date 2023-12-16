@@ -1,11 +1,12 @@
 import os
 import smtplib
 import ssl
+from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 import openpyxl
-# from alive_progress import alive_bar
+from alive_progress import alive_bar
 from dotenv import load_dotenv
 
 # loading the local .env file
@@ -31,6 +32,8 @@ class Emailer:
                 most_recent_file = [t, f]
                 
         self.file_path = os.path.join(RES, most_recent_file[1])
+        self.__validate_file()
+        
     
     
     def __format_name(self, name:str) -> str:
@@ -43,6 +46,24 @@ class Emailer:
         :return: the name in lowercase with spaces replaced by underscores.
         """
         return name.lower().replace(' ', '_')
+    
+    
+    def __validate_file(self) -> None:
+        """
+        The function validates if the file's creation date matches today's date and prompts the user for
+        confirmation before proceeding with the emailer.
+        """
+        d = datetime.fromtimestamp(os.path.getctime(self.file_path))
+        today = datetime.now()
+        if not all([today.day == d.day, today.month == d.month, today.year == d.year]):
+            print('File\'s date does not match today\'s date!')
+            print(f'    - today: {today.month}-{today.day}-{today.year}')
+            print(f'    -  file: {d.month}-{d.day}-{d.year}')
+            print('Are you sure you want to go ahead with the emailer?')
+            ans = input('-> ')
+            if ans not in ['yes', 'y']:
+                raise ValueError('Date Mismatch')
+            
     
     
     def __init__(self) -> None:
@@ -60,14 +81,20 @@ class Emailer:
         
         with smtplib.SMTP_SSL('smtp.gmail.com', port=465, context=context) as server:
             server.login(os.getenv('email_user'), os.getenv('email_password'))
-            for sheet in workbook.worksheets:
-                if sheet.title in {'Overview', 'Issue Legend', 'Placements'}:
-                    continue
-                elif os.getenv(self.__format_name(sheet.title)) == None:
-                    self.no_emails.append(sheet.title)
-                    continue
+            
+            title = 'Getting Coach\'s summery and emailing...'
+            with alive_bar(len(workbook.worksheets), title=title) as bar:
+                for sheet in workbook.worksheets:
+                    if sheet.title in {'Overview', 'Issue Legend', 'Placements'}:
+                        continue
+                    elif os.getenv(self.__format_name(sheet.title)) == None:
+                        self.no_emails.append(sheet.title)
+                        continue
                     
-                self.get_data_and_email(sheet, server)
+                    bar.title(f'Getting {sheet.title.split(" ")[0]}\'s summery and emailing...')
+                    self.get_data_and_email(sheet, server)
+                    
+                    bar()
                 
         if self.no_emails:
             print('the following names didn\'t have a email listed')
