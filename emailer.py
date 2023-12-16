@@ -1,6 +1,7 @@
 import os
 import smtplib
 import ssl
+from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -31,6 +32,7 @@ class Emailer:
                 most_recent_file = [t, f]
                 
         self.file_path = os.path.join(RES, most_recent_file[1])
+        self.__validate_file()
     
     
     def __format_name(self, name:str) -> str:
@@ -43,6 +45,11 @@ class Emailer:
         :return: the name in lowercase with spaces replaced by underscores.
         """
         return name.lower().replace(' ', '_')
+    
+    
+    def __validate_file(self) -> None:
+        d = datetime.fromtimestamp(os.path.getctime(self.file_path))
+        print(d)
     
     
     def __init__(self) -> None:
@@ -158,4 +165,4 @@ class Emailer:
         
 if __name__ == '__main__':
     em = Emailer()
-    em.scan_sheets()
+    # em.scan_sheets()
