@@ -19,11 +19,22 @@ RES = os.path.join(DIR, 'res')
 
 class Emailer:
     
+    def __validate_folder(self) -> None:
+        """
+        The function checks if the "res" folder exists and if it is empty, and raises
+        exceptions if either condition is true.
+        """
+        if not os.path.exists(RES):
+            raise BaseException('res folder does not exist')
+        if os.listdir(RES) == 0:
+            raise BaseException('res folder is empty')
+    
     def __get_recent_file_path(self) -> None:
         """
         The function finds the most recent file in res folder and sets the
         `file_path` attribute to the path of that file.
         """
+        self.__validate_folder() # validates that the folder exists and isn't empty
         files = os.listdir(RES) # get the files from the RES folder
         most_recent_file = [0, '']
         for f in files:
@@ -32,7 +43,7 @@ class Emailer:
                 most_recent_file = [t, f]
                 
         self.file_path = os.path.join(RES, most_recent_file[1]) # when we find it, save it's path to as one of our instance variables
-        self.__validate_file() # check that the file we just grab was created today
+        self.__validate_file_timestamp() # check that the file we just grab was created today
         
     
     
@@ -48,10 +59,10 @@ class Emailer:
         return name.lower().replace(' ', '_')
     
     
-    def __validate_file(self) -> None:
+    def __validate_file_timestamp(self) -> None:
         """
         The function validates if the file's creation date matches today's date and prompts the user for
-        confirmation before proceeding with the emailer.
+        confirmation before proceeding with the emailer if not.
         """
         d = datetime.fromtimestamp(os.path.getctime(self.file_path)) # get the datetime for the target file and today
         today = datetime.now()

@@ -25,5 +25,9 @@ The output is directed to a 'res' directory. If this directory does not exist, t
 
 # Emailer
 
-This is a simple script that will send personalized emails to coaches about their caseload with the output of the sheet for them.
-It will only email the coaches with their names in the .env file (to protect thier emails) that have names that correspond to the names in the sheets 
+This script sends emails to coaches about their caseload with the output of the sheet for them.
+It will only email the coaches with their names in the .env file (to protect thier emails) that have names that correspond to the names in the sheets
+
+The script will grab the most recent output file in the res folder, if the folder doesn't exist, or is empty, the script will throw an error.
+
+In order for the script to run properly you will need a .env file, this file is not saved to the repo for security, it should contain names to emails for the sheets and the login info for the emailing service.
