@@ -82,8 +82,7 @@ class Emailer:
         with smtplib.SMTP_SSL('smtp.gmail.com', port=465, context=context) as server:
             server.login(os.getenv('email_user'), os.getenv('email_password'))
             
-            title = 'Getting Coach\'s summery and emailing...'
-            with alive_bar(len(workbook.worksheets), title=title) as bar:
+            with alive_bar(len(workbook.worksheets), title='Getting Coach\'s summary and emailing...') as bar:
                 for sheet in workbook.worksheets:
                     if sheet.title in {'Overview', 'Issue Legend', 'Placements'}:
                         continue
@@ -91,7 +90,7 @@ class Emailer:
                         self.no_emails.append(sheet.title)
                         continue
                     
-                    bar.title(f'Getting {sheet.title.split(" ")[0]}\'s summery and emailing...')
+                    bar.title(f'Getting {sheet.title.split(" ")[0]}\'s summary and emailing...')
                     self.get_data_and_email(sheet, server)
                     
                     bar()
