@@ -59,7 +59,7 @@ class Emailer:
             print('File\'s date does not match today\'s date!')
             print(f'    - today: {today.month}-{today.day}-{today.year}')
             print(f'    -  file: {d.month}-{d.day}-{d.year}')
-            print('Are you should you want to go ahead with the emailer?')
+            print('Are you sure you want to go ahead with the emailer?')
             ans = input('-> ')
             if ans not in ['yes', 'y']:
                 raise ValueError('Date Mismatch')
