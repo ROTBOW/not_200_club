@@ -6,7 +6,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 import openpyxl
-# from alive_progress import alive_bar
+from alive_progress import alive_bar
 from dotenv import load_dotenv
 
 # loading the local .env file
@@ -33,7 +33,7 @@ class Emailer:
                 
         self.file_path = os.path.join(RES, most_recent_file[1])
         self.__validate_file()
-        print("scaning and emailing...")
+        
     
     
     def __format_name(self, name:str) -> str:
@@ -81,14 +81,20 @@ class Emailer:
         
         with smtplib.SMTP_SSL('smtp.gmail.com', port=465, context=context) as server:
             server.login(os.getenv('email_user'), os.getenv('email_password'))
-            for sheet in workbook.worksheets:
-                if sheet.title in {'Overview', 'Issue Legend', 'Placements'}:
-                    continue
-                elif os.getenv(self.__format_name(sheet.title)) == None:
-                    self.no_emails.append(sheet.title)
-                    continue
+            
+            title = 'Getting Coach\'s summery and emailing...'
+            with alive_bar(len(workbook.worksheets), title=title) as bar:
+                for sheet in workbook.worksheets:
+                    if sheet.title in {'Overview', 'Issue Legend', 'Placements'}:
+                        continue
+                    elif os.getenv(self.__format_name(sheet.title)) == None:
+                        self.no_emails.append(sheet.title)
+                        continue
                     
-                self.get_data_and_email(sheet, server)
+                    bar.title(f'Getting {sheet.title.split(" ")[0]}\'s summery and emailing...')
+                    self.get_data_and_email(sheet, server)
+                    
+                    bar()
                 
         if self.no_emails:
             print('the following names didn\'t have a email listed')
@@ -179,4 +185,4 @@ class Emailer:
         
 if __name__ == '__main__':
     em = Emailer()
-    # em.scan_sheets()
+    em.scan_sheets()
