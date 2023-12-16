@@ -33,6 +33,7 @@ class Emailer:
                 
         self.file_path = os.path.join(RES, most_recent_file[1])
         self.__validate_file()
+        print("scaning and emailing...")
     
     
     def __format_name(self, name:str) -> str:
@@ -48,8 +49,21 @@ class Emailer:
     
     
     def __validate_file(self) -> None:
+        """
+        The function validates if the file's creation date matches today's date and prompts the user for
+        confirmation before proceeding with the emailer.
+        """
         d = datetime.fromtimestamp(os.path.getctime(self.file_path))
-        print(d)
+        today = datetime.now()
+        if not all([today.day == d.day, today.month == d.month, today.year == d.year]):
+            print('File\'s date does not match today\'s date!')
+            print(f'    - today: {today.month}-{today.day}-{today.year}')
+            print(f'    -  file: {d.month}-{d.day}-{d.year}')
+            print('Are you should you want to go ahead with the emailer?')
+            ans = input('-> ')
+            if ans not in ['yes', 'y']:
+                raise ValueError('Date Mismatch')
+            
     
     
     def __init__(self) -> None:
