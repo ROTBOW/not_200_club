@@ -19,22 +19,26 @@ RES = os.path.join(DIR, 'res')
 
 class Emailer:
     
-    def __validate_folder(self) -> None:
+    def __validate_folder_and_env(self) -> None:
         """
-        The function checks if the "res" folder exists and if it is empty, and raises
-        exceptions if either condition is true.
+        The function checks if the `res` folder exists, if it is empty, and
+        if the `.env` file exists.
         """
         if not os.path.exists(RES):
             raise BaseException('res folder does not exist')
+        
         if os.listdir(RES) == 0:
             raise BaseException('res folder is empty')
+        
+        if not os.path.exists(os.path.join(DIR, '.env')):
+            raise BaseException('No .env - No emails or login info')
     
     def __get_recent_file_path(self) -> None:
         """
         The function finds the most recent file in res folder and sets the
         `file_path` attribute to the path of that file.
         """
-        self.__validate_folder() # validates that the folder exists and isn't empty
+        self.__validate_folder_and_env() # validates that the folder exists and isn't empty
         files = os.listdir(RES) # get the files from the RES folder
         most_recent_file = [0, '']
         for f in files:
