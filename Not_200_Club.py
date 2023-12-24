@@ -10,7 +10,10 @@ from warnings import simplefilter
 
 import requests
 from alive_progress import alive_bar
+
 import openpyxl
+from openpyxl.styles import Font, PatternFill
+from openpyxl.formatting.rule import CellIsRule, FormulaRule
 
 # Constants
 DIR = os.path.dirname(os.path.realpath(__file__))
@@ -227,11 +230,54 @@ class Not200Club:
         return sheet
     
     
-    def __fit_to_data(self, sheet):
+    def __format_sheet(self, sheet): # don't forget to add a desc for this one.
         for column_cells in sheet.columns:
+            if column_cells[0].value == "Seeker Name":
+                for cell in column_cells:
+                    cell.font = Font(bold=True)
+            
             length = max(len(str(cell.value)) for cell in column_cells)
             length = min(length, 200)  # Limit column width to 200
             sheet.column_dimensions[column_cells[0].column_letter].width = length
+        
+        # Green for good
+        sheet.conditional_formatting.add('A2:E1000',
+            CellIsRule(
+                operator="equal",
+                formula=['No Issues Found'],
+                stopIfTrue=True,
+                fill=PatternFill(
+                    start_color='50f321',
+                    end_color='50f321',
+                    fill_type='solid')
+            )
+        )
+        
+        # Yellow for mid-level issue
+        sheet.conditional_formatting.add('A2:E1000',
+            FormulaRule(
+                formula=['ISNUMBER(SEARCH("time:", A1))'],
+                stopIfTrue=True,
+                fill=PatternFill(
+                    start_color='EE1111',
+                    end_color='EE1111',
+                    fill_type='solid')
+            )
+        )
+    
+        # Red for bad issues
+        sheet.conditional_formatting.add('A2:E1000',
+            FormulaRule(
+                formula=['ISNUMBER(SEARCH("timeout:", A1))', 'ISNUMBER(SEARCH("status:", A1))'],
+                stopIfTrue=True,
+                fill=PatternFill(
+                    start_color='f3f121',
+                    end_color='f3f121',
+                    fill_type='solid')
+            )
+        )
+        
+        
     
     
     def __test_urls_and_write_to_xlsx(self) -> None:
@@ -240,8 +286,8 @@ class Not200Club:
         information to an Excel file.
         """
 
-        # for coach in ['Anna Paschall']:
-        for coach in self.sites_by_coach:
+        # for coach in self.sites_by_coach:
+        for coach in ['Anna Paschall']:
             row = 2
             sheet = self.__create_coach_sheet(coach)
             all_coach_issues = self.__threading_get_all_issues(coach)
@@ -265,7 +311,7 @@ class Not200Club:
                         col += 1
                     row += 1
                     
-            self.__fit_to_data(sheet)
+            self.__format_sheet(sheet)
                 
             self.workbook.save(self.output_path)
                 
@@ -310,7 +356,7 @@ class Not200Club:
             sheet.cell(row=row, column=4, value=f"Capstone: {self.overview[key]['capstone']}")
             sheet.cell(row=row, column=5, value=f"Group: {self.overview[key]['group']}")
             
-        self.__fit_to_data(sheet)
+        self.__format_sheet(sheet)
         
     def __fill_issue_legend(self) -> None:
         """
@@ -338,7 +384,7 @@ class Not200Club:
         sheet.cell(row=6, column=1, value='No-link')
         sheet.cell(row=6, column=2, value='Means there was no url listed in saleforce for that project')
 
-        self.__fit_to_data(sheet)
+        self.__format_sheet(sheet)
     
     def main(self) -> None:
         """
