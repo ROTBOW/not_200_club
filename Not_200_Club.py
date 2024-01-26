@@ -4,10 +4,10 @@ from collections import defaultdict as ddict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta
 from statistics import mean, median, mode
-from string import ascii_uppercase
 from time import time
 from warnings import simplefilter
 
+import json
 import requests
 from alive_progress import alive_bar
 import openpyxl
@@ -36,6 +36,7 @@ class Not200Club:
         
         self.data = list()
         self.sites_by_coach = ddict(lambda: ddict(dict))
+        self.all_coach_issues = dict()
         self.timeout = timeout
         self.total_seekers = 0
         self.start_time = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
@@ -240,15 +241,15 @@ class Not200Club:
         information to an Excel file.
         """
 
-        # for coach in ['Anna Paschall']:
-        for coach in self.sites_by_coach:
+        # for coach in self.sites_by_coach:
+        for coach in ['Josiah Leon']:
             row = 2
             sheet = self.__create_coach_sheet(coach)
-            all_coach_issues = self.__threading_get_all_issues(coach)
+            self.all_coach_issues[coach] = self.__threading_get_all_issues(coach)
             
             
-            if all_coach_issues:
-                for seeker, issues in all_coach_issues.items():
+            if self.all_coach_issues[coach]:
+                for seeker, issues in self.all_coach_issues[coach].items():
                     status = self.sites_by_coach[coach][seeker]['status']
                     self.overview['seeker_with_issue'] += 1
                     
@@ -339,6 +340,16 @@ class Not200Club:
         sheet.cell(row=6, column=2, value='Means there was no url listed in saleforce for that project')
 
         self.__fit_to_data(sheet)
+        
+    def __output_json(self) -> None:
+        for seeker in self.all_coach_issues.values():
+            for issues in seeker.values():
+                for key, issue in issues.items():
+                    if isinstance(issue, timedelta):
+                        issues[key] = str(issue.total_seconds())
+        
+        with open(os.path.join(RES, f'{"not200club "+str(date.today())}.json'), 'w') as file:
+            json.dump(self.all_coach_issues, file)
     
     def main(self) -> None:
         """
@@ -351,6 +362,7 @@ class Not200Club:
             self.__fill_issue_legend()
             self.__fill_overview()
             self.workbook.save(self.output_path)
+            self.__output_json()
         
     @classmethod
     def validate(cls) -> None:
