@@ -1,5 +1,5 @@
 
-
+import { parseIssues } from "@/utils"
 
 const SeekerList = ({coachData}) => {
 
@@ -16,17 +16,6 @@ const SeekerList = ({coachData}) => {
         return 'seeker-bad'
     }
 
-    const parseIssues = (issues) => {
-        if (issues.length === 0) {
-            return 'No Issues'
-        }
-        
-        if (issues.includes(true)) {
-            issues = ['No Link']
-        }
-
-        return issues
-    }
 
     const createSingleDiscordMessage = (projs, seeker) => {
         return (e) => {
@@ -53,7 +42,7 @@ const SeekerList = ({coachData}) => {
 
             let solo = Object.values(coachData[seeker]['solo']);
             let cap = Object.values(coachData[seeker]['capstone']);
-            let group = Object.values(coachData[seeker]['group'])
+            let group = Object.values(coachData[seeker]['group']);
 
             s.push(
                 <tr key={seeker}>
@@ -61,7 +50,7 @@ const SeekerList = ({coachData}) => {
                     <td className={`p-2 border ${assignDangerLevel(solo, seeker)}`}>{parseIssues(solo)}</td>
                     <td className={`p-2 border ${assignDangerLevel(cap, seeker)}`}>{parseIssues(cap)}</td>
                     <td className={`p-2 border ${assignDangerLevel(group, seeker)}`}>{parseIssues(group)}</td>
-                    <td className="p-2 border flex justify-center">
+                    <td className="p-2 border flex justify-center h-full">
                         <button className="w-full h-full rounded bg-gray-800 hover:bg-slate-600 transition-all" onClick={createSingleDiscordMessage(coachData[seeker], seeker)}>Copy</button>
                     </td>
                 </tr>
@@ -72,7 +61,7 @@ const SeekerList = ({coachData}) => {
     }
 
     return (
-        <div className="my-5">
+        <div className="my-5 w-3/5">
             <h2 className="text-3xl underline">Seeker Site Issues</h2>
 
             <table className="mt-2 p-5 border rounded">
