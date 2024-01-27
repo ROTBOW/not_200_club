@@ -54,7 +54,7 @@ const Home = () => {
 
       <Link href="new" className='fixed top-5 right-6 rounded p-1 bg-gray-800 hover:bg-slate-600 transition-all'>Upload(Josiah Only)</Link>
 
-      <div className='flex'>
+      <div className='flex justify-center'>
         {coachOutput()}
       </div>
     </main>

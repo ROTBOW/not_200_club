@@ -61,7 +61,7 @@ const SeekerList = ({coachData}) => {
     }
 
     return (
-        <div className="my-5 w-3/5">
+        <div className="my-5">
             <h2 className="text-3xl underline">Seeker Site Issues</h2>
 
             <table className="mt-2 p-5 border rounded">

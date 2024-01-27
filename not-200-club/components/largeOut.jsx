@@ -36,7 +36,7 @@ const LargeOut = ({coachData}) => {
     }
 
     return (
-        <div className="pl-3 my-5 w-2/5">
+        <div className="pl-3 my-5">
             <h2 className="text-3xl">
                 Discord Message -&ensp;
                 <button className="px-2 py-1 rounded bg-gray-800 hover:bg-slate-600 transition-all" onClick={handleCopy}>Copy</button>
