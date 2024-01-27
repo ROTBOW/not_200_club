@@ -43,7 +43,7 @@ const UploadData = () => {
                 <p className='py-5'>Upload health json file</p>
                 <label className='p-5'>
                     Password&ensp;
-                    <input type='password' onChange={(e)=>{setPass(e.target.value)}}/>
+                    <input type='password' className='text-black' onChange={(e)=>{setPass(e.target.value)}}/>
                 </label>
                 <input type="file" onChange={handleFileUpload}/>
             </div>
