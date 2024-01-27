@@ -6,9 +6,16 @@ import addHealthCheck from '@/firebase/addHealthCheck';
 
 const UploadData = () => {
 
-    const [json, setJson] = useState('{}')
+    const [json, setJson] = useState('{}');
+    const [pass, setPass] = useState('');
 
     const handleFileUpload = (e) => {
+
+        if (pass !== process.env.NEXT_PUBLIC_PASSWORD) {
+            alert('Wrong password!\ndoing nothing...')
+            return
+        }
+
         let fr = new FileReader();
 
         fr.onload = (e) => {
@@ -34,9 +41,13 @@ const UploadData = () => {
             <div className='w-2/5 pl-5'>
                 <Link href='/' className="rounded p-1 bg-gray-800 hover:bg-slate-600 transition-all">Home</Link>
                 <p className='py-5'>Upload health json file</p>
+                <label className='p-5'>
+                    Password&ensp;
+                    <input type='password' onChange={(e)=>{setPass(e.target.value)}}/>
+                </label>
                 <input type="file" onChange={handleFileUpload}/>
             </div>
-            <pre className='w-3/5 h-96 overflow-auto pl-2 mx-5 bg-red-400 rounded font-mono'>
+            <pre className='w-3/5 h-96 overflow-auto pl-2 mx-5 bg-gray-700 rounded font-mono'>
                 <code>
                     {json}
                 </code>
