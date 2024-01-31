@@ -3,10 +3,13 @@ import { parseIssues } from "@/utils"
 
 const SeekerList = ({coachData}) => {
 
-    const assignDangerLevel = (issues, seeker) => {
+    const assignDangerLevel = (issues) => {
 
-        if (issues.includes('time')) {
-            return 'seeker-mid'
+        for (let issue of issues) {
+            const re = /^\d{0,4}\.\d+$/;
+            if (re.test(issue.toString())) {
+                return 'seeker-mid'
+            }
         }
 
         if (issues.length === 0) {
@@ -44,12 +47,14 @@ const SeekerList = ({coachData}) => {
             let cap = Object.values(coachData[seeker]['capstone']);
             let group = Object.values(coachData[seeker]['group']);
 
+            const rowStyle = 'p-2 border max-w-44 h-1 overflow-auto whitespace-nowrap';
+
             s.push(
                 <tr key={seeker}>
                     <td className="p-2 border">{seeker}</td>
-                    <td className={`p-2 border ${assignDangerLevel(solo, seeker)}`}>{parseIssues(solo)}</td>
-                    <td className={`p-2 border ${assignDangerLevel(cap, seeker)}`}>{parseIssues(cap)}</td>
-                    <td className={`p-2 border ${assignDangerLevel(group, seeker)}`}>{parseIssues(group)}</td>
+                    <td className={`${rowStyle} ${assignDangerLevel(solo)}`}>{parseIssues(solo)}</td>
+                    <td className={`${rowStyle} ${assignDangerLevel(cap)}`}>{parseIssues(cap)}</td>
+                    <td className={`${rowStyle} ${assignDangerLevel(group)}`}>{parseIssues(group)}</td>
                     <td className="p-2 border flex justify-center h-full">
                         <button className="w-full h-full rounded bg-gray-800 hover:bg-slate-600 transition-all" onClick={createSingleDiscordMessage(coachData[seeker], seeker)}>Copy</button>
                     </td>

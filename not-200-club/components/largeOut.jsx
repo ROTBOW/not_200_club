@@ -9,7 +9,7 @@ const LargeOut = ({coachData}) => {
 
     useEffect(() => {
         setMessage(genMessage())
-    }, [])
+    }, [coachData])
 
     const genMessage = () => {
         let message = [

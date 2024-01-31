@@ -241,8 +241,8 @@ class Not200Club:
         information to an Excel file.
         """
 
-        # for coach in self.sites_by_coach:
-        for coach in ['Josiah Leon']:
+        # for coach in ['Josiah Leon']:
+        for coach in self.sites_by_coach:
             row = 2
             sheet = self.__create_coach_sheet(coach)
             self.all_coach_issues[coach] = self.__threading_get_all_issues(coach)
@@ -342,11 +342,13 @@ class Not200Club:
         self.__fit_to_data(sheet)
         
     def __output_json(self) -> None:
-        for seeker in self.all_coach_issues.values():
-            for issues in seeker.values():
-                for key, issue in issues.items():
-                    if isinstance(issue, timedelta):
-                        issues[key] = str(issue.total_seconds())
+                        
+        for coach in self.all_coach_issues:
+            for seeker in self.all_coach_issues[coach]:
+                for proj in self.all_coach_issues[coach][seeker]:
+                    for issue in self.all_coach_issues[coach][seeker][proj]:
+                        if isinstance(self.all_coach_issues[coach][seeker][proj][issue], timedelta):
+                            self.all_coach_issues[coach][seeker][proj][issue] = str(self.all_coach_issues[coach][seeker][proj][issue].total_seconds())
         
         with open(os.path.join(RES, f'{"not200club "+str(date.today())}.json'), 'w') as file:
             json.dump(self.all_coach_issues, file)
