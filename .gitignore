@@ -8,6 +8,7 @@
 /.vscode
 .env
 *.pyc
+note.txt
 
 # screw you macOS
 .DS_Store 
