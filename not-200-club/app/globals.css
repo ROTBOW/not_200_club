@@ -38,8 +38,8 @@ body {
 }
 
 .seeker-mid {
-  background-color: yellow;
-  color: yellowgreen;
+  background-color: rgb(200, 180, 0);
+  color: yellow;
 }
 
 .seeker-bad {
