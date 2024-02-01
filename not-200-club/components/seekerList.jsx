@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { parseIssues, assignDangerLevel, filterSeekersByProject } from "@/utils"
+import { assignDangerLevel, filterSeekersByProject } from '@/utils/seekerListUtils';
+import { parseIssues } from "@/utils/utils"
 
 const SeekerList = ({coachData, seenSeekers}) => {
     const [showSolo, setShowSolo] = useState(true);

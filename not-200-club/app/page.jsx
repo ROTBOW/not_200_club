@@ -4,7 +4,7 @@ import Link from 'next/link';
 import getRecent from '@/firebase/getRecent';
 import SeekerList from '@/components/seekerList';
 import LargeOut from '@/components/largeOut';
-import { getNames } from '@/utils';
+import { getNames } from '@/utils/utils';
 
 
 const Home = () => {

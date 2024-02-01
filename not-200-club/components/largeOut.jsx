@@ -1,4 +1,4 @@
-import { parseIssues } from "@/utils";
+import { parseIssues } from "@/utils/utils";
 import { useState, useEffect } from 'react';
 
 
