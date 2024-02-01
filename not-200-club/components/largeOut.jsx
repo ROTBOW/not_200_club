@@ -39,7 +39,7 @@ const LargeOut = ({coachData}) => {
         <div className="pl-3 my-5">
             <h2 className="text-3xl">
                 Discord Message -&ensp;
-                <button className="px-2 py-1 rounded bg-gray-800 hover:bg-slate-600 transition-all" onClick={handleCopy}>Copy</button>
+                <button className="px-2 py-1 rounded bg-gray-800 hover:bg-slate-600 transition-all" onClick={handleCopy}>Copy All</button>
             </h2>
             <textarea className="w-full h-full mt-2 p-2 bg-gray-700 rounded" readOnly value={message}/>
         </div>

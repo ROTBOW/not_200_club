@@ -3,7 +3,7 @@ import { getFirestore, getDocs, orderBy, query, collection, limit } from "fireba
 
 const db = getFirestore(firebase_app)
 export default async function getRecent() {
-    const q = query(collection(db, 'healthData'), orderBy('date', 'desc'), limit(1));
+    const q = query(collection(db, 'healthData'), orderBy('date', 'desc'), limit(2));
     const qsnap = await getDocs(q);
     
     let docs = [];
@@ -11,5 +11,5 @@ export default async function getRecent() {
         docs.push(doc.data())
     })
     
-    return docs[0];
+    return docs;
 };
