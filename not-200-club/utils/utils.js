@@ -26,6 +26,31 @@ export const parseIssues = (issues) => {
     return issues
 }
 
+export const filterSeekersByProject = (data, whatGoes) => {
+    let res = {};
+
+    for (let seeker in data) {
+        let addSeeker = false;
+
+        for (let proj in data[seeker]) {
+            if (!whatGoes[proj]) continue;
+            let issues = data[seeker][proj]
+            if (Object.keys(issues).length !== 0) {
+                addSeeker = true;
+            }
+
+            if (addSeeker) {
+                if (res[seeker] === undefined) {
+                    res[seeker] = {}
+                }
+                res[seeker][proj] = issues;
+            }
+        }
+    }
+
+    return res;
+}
+
 
 
 

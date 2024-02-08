@@ -5,6 +5,7 @@ import getRecent from '@/firebase/getRecent';
 import SeekerList from '@/components/seekerList';
 import LargeOut from '@/components/largeOut';
 import { getNames } from '@/utils/utils';
+import { SeekerProvider } from '@/context/seekerContext';
 
 
 const Home = () => {
@@ -36,10 +37,10 @@ const Home = () => {
       let coach = coachData[currCoach];
 
       return (
-        <>
+        <SeekerProvider>
           <SeekerList coachData={coach} seenSeekers={seenSeekers}/>
           <LargeOut coachData={coach}/>
-        </>
+        </SeekerProvider>
       )
   };
 

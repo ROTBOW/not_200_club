@@ -1,23 +1,32 @@
 import { parseIssues } from "@/utils/utils";
 import { useState, useEffect } from 'react';
+import { useSeeker } from '@/context/seekerContext';
+import { filterSeekersByProject } from "@/utils/utils";
 
 
 
 const LargeOut = ({coachData}) => {
 
     const [message, setMessage] = useState('')
+    const { showSolo, showCapstone, showGroup } = useSeeker();
 
     useEffect(() => {
         setMessage(genMessage())
-    }, [coachData])
+    }, [coachData, showSolo, showCapstone, showGroup])
 
     const genMessage = () => {
+
+        let data = filterSeekersByProject(
+            coachData,
+            {solo: showSolo, capstone: showCapstone, group: showGroup}
+        )
+
         let message = [
             'Hey Everyone, I know you know how important it is keep your projects up and running.',
             'with that in mind, I\'ve checked your sites and a few of them are having some issues.',
         ];
 
-        for (let seeker in coachData) {
+        for (let seeker in data) {
 
             message.push(`### ${seeker}:`)
 

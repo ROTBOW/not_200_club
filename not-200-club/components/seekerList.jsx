@@ -1,11 +1,10 @@
-import { useState } from 'react';
-import { assignDangerLevel, filterSeekersByProject } from '@/utils/seekerListUtils';
-import { parseIssues } from "@/utils/utils"
+
+import { assignDangerLevel } from '@/utils/seekerListUtils';
+import { parseIssues, filterSeekersByProject } from "@/utils/utils"
+import { useSeeker } from '@/context/seekerContext';
 
 const SeekerList = ({coachData, seenSeekers}) => {
-    const [showSolo, setShowSolo] = useState(true);
-    const [showCapstone, setShowCapstone] = useState(true);
-    const [showGroup, setShowGroup] = useState(true);
+    const { showSolo, setShowSolo, showCapstone, setShowCapstone, showGroup, setShowGroup } = useSeeker();
 
     const createSingleDiscordMessage = (projs, seeker) => {
         return (e) => {
