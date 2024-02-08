@@ -41,7 +41,7 @@ export const filterSeekersByProject = (data, whatGoes) => {
 
             if (addSeeker) {
                 if (res[seeker] === undefined) {
-                    res[seeker] = {}
+                    res[seeker] = {email: data[seeker].email}
                 }
                 res[seeker][proj] = issues;
             }

@@ -2,6 +2,8 @@
 import { assignDangerLevel } from '@/utils/seekerListUtils';
 import { parseIssues, filterSeekersByProject } from "@/utils/utils"
 import { useSeeker } from '@/context/seekerContext';
+import Image from 'next/image';
+import copy from '@/public/content_copy.svg';
 
 const SeekerList = ({coachData, seenSeekers}) => {
     const { showSolo, setShowSolo, showCapstone, setShowCapstone, showGroup, setShowGroup } = useSeeker();
@@ -24,6 +26,20 @@ const SeekerList = ({coachData, seenSeekers}) => {
         }
     }
 
+    const handleCopyEmails = (e) => {
+        let emailsEles = document.getElementsByClassName('email-container');
+        let emails = [];
+
+        for (let ele of emailsEles) {
+            if (ele.value !== 'n\\a') {
+                emails.push(ele.value);
+            }
+        }
+
+        navigator.clipboard.writeText(emails.join(' '));
+        alert('Copied all emails')
+    }
+
     const seekers = () => {
         let s = [];
         
@@ -33,16 +49,24 @@ const SeekerList = ({coachData, seenSeekers}) => {
         );
         
         for (let seeker in data) {
-
+            
             let solo = Object.values(coachData[seeker]['solo']);
             let cap = Object.values(coachData[seeker]['capstone']);
             let group = Object.values(coachData[seeker]['group']);
+            let email = data[seeker].email ? data[seeker].email : 'n\\a'
 
             const rowStyle = 'p-2 border max-w-44 h-1 overflow-auto whitespace-nowrap';
             
             s.push(
                 <tr key={seeker}>
                     <td className={`p-2 border ${(seenSeekers.has(seeker.toLowerCase())) ? 'seeker-bad' : ''}`}>{seeker}</td>
+                    <td className={rowStyle}>
+                        <input 
+                            className='bg-black w-full email-container'
+                            onClick={e => e.target.select()}
+                            value={email}
+                        />
+                    </td>
                     {showSolo && <td className={`${rowStyle} ${assignDangerLevel(solo)}`}>{parseIssues(solo)}</td>}
                     {showCapstone && <td className={`${rowStyle} ${assignDangerLevel(cap)}`}>{parseIssues(cap)}</td>}
                     {showGroup && <td className={`${rowStyle} ${assignDangerLevel(group)}`}>{parseIssues(group)}</td>}
@@ -78,7 +102,11 @@ const SeekerList = ({coachData, seenSeekers}) => {
             <table className="mt-2 p-5 border rounded">
                 <tbody>
                     <tr>
-                        <th className="p-2 border w-80">Seeker Name</th>
+                        <th className="p-2 border w-64">Seeker Name</th>
+                        <th className="p-2 border w-52 h-full">
+                            Email
+                            <button onClick={handleCopyEmails}><Image src={copy} className='ml-2'/></button>
+                        </th>
                         {showSolo && <th className="p-2 border">Solo Issues</th>}
                         {showCapstone && <th className="p-2 border">Capstone Issues</th>}
                         {showGroup && <th className="p-2 border">Group Issues</th>}

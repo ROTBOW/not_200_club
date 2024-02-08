@@ -99,7 +99,8 @@ class Not200Club:
                         2: 'status',
                         3: 'solo',
                         4: 'capstone',
-                        5: 'group'
+                        5: 'group',
+                        6: 'email'
                     }
                     
                     val = cell.value
@@ -110,7 +111,7 @@ class Not200Club:
                     
                         
                 
-                for proj in ['status', 'solo', 'capstone', 'group']:
+                for proj in ['status', 'solo', 'capstone', 'group', 'email']:
                     self.sites_by_coach[curr_row['coach']][curr_row['seeker']][proj] = curr_row[proj]
                 bar()
     
@@ -241,7 +242,7 @@ class Not200Club:
         information to an Excel file.
         """
 
-        # for coach in ['Josiah Leon']:
+        # for coach in ['Alex Mak']:
         for coach in self.sites_by_coach:
             row = 2
             sheet = self.__create_coach_sheet(coach)
@@ -345,7 +346,10 @@ class Not200Club:
                         
         for coach in self.all_coach_issues:
             for seeker in self.all_coach_issues[coach]:
+                self.all_coach_issues[coach][seeker]['email'] = self.sites_by_coach[coach][seeker]['email']
                 for proj in self.all_coach_issues[coach][seeker]:
+                    if proj == 'email':
+                            continue
                     for issue in self.all_coach_issues[coach][seeker][proj]:
                         if isinstance(self.all_coach_issues[coach][seeker][proj][issue], timedelta):
                             self.all_coach_issues[coach][seeker][proj][issue] = str(self.all_coach_issues[coach][seeker][proj][issue].total_seconds())

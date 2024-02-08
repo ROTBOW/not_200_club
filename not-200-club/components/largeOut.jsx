@@ -31,7 +31,7 @@ const LargeOut = ({coachData}) => {
             message.push(`### ${seeker}:`)
 
             for (let proj in coachData[seeker]) {
-                if (Object.values(coachData[seeker][proj]).length === 0) continue;
+                if (Object.values(coachData[seeker][proj]).length === 0 || proj === 'email') continue;
                 message.push(`* ${proj}: ${parseIssues(Object.values(coachData[seeker][proj]))}`)
             }
 
@@ -41,7 +41,8 @@ const LargeOut = ({coachData}) => {
     }
 
     const handleCopy = () => {
-        navigator.clipboard.writeText(message)
+        navigator.clipboard.writeText(message);
+        alert('Copied Discord Message');
     }
 
     return (
