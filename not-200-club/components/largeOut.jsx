@@ -8,17 +8,18 @@ import { filterSeekersByProject } from "@/utils/utils";
 const LargeOut = ({coachData}) => {
 
     const [message, setMessage] = useState('')
-    const { showSolo, showCapstone, showGroup } = useSeeker();
+    const { showSolo, showCapstone, showGroup, issueType } = useSeeker();
 
     useEffect(() => {
         setMessage(genMessage())
-    }, [coachData, showSolo, showCapstone, showGroup])
+    }, [coachData, showSolo, showCapstone, showGroup, issueType])
 
     const genMessage = () => {
 
         let data = filterSeekersByProject(
             coachData,
-            {solo: showSolo, capstone: showCapstone, group: showGroup}
+            {solo: showSolo, capstone: showCapstone, group: showGroup},
+            issueType
         )
 
         let message = [

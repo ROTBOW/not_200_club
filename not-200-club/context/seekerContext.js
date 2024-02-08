@@ -6,9 +6,10 @@ export const SeekerProvider = ({ children }) => {
   const [showSolo, setShowSolo] = useState(true);
   const [showCapstone, setShowCapstone] = useState(true);
   const [showGroup, setShowGroup] = useState(true);
+  const [issueType, setIssueType] = useState('all');
 
   return (
-    <SeekerContext.Provider value={{ showSolo, setShowSolo, showCapstone, setShowCapstone, showGroup, setShowGroup }}>
+    <SeekerContext.Provider value={{ showSolo, setShowSolo, showCapstone, setShowCapstone, showGroup, setShowGroup, issueType, setIssueType}}>
       {children}
     </SeekerContext.Provider>
   );

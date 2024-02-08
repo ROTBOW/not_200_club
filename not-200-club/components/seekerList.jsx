@@ -6,7 +6,7 @@ import Image from 'next/image';
 import copy from '@/public/content_copy.svg';
 
 const SeekerList = ({coachData, seenSeekers}) => {
-    const { showSolo, setShowSolo, showCapstone, setShowCapstone, showGroup, setShowGroup } = useSeeker();
+    const { showSolo, setShowSolo, showCapstone, setShowCapstone, showGroup, setShowGroup, issueType, setIssueType } = useSeeker();
 
     const createSingleDiscordMessage = (projs, seeker) => {
         return (e) => {
@@ -45,7 +45,8 @@ const SeekerList = ({coachData, seenSeekers}) => {
         
         let data = filterSeekersByProject(
             coachData,
-            {solo: showSolo, capstone: showCapstone, group: showGroup}
+            {solo: showSolo, capstone: showCapstone, group: showGroup},
+            issueType
         );
         
         for (let seeker in data) {
@@ -83,7 +84,20 @@ const SeekerList = ({coachData, seenSeekers}) => {
     const checkboxStyle = 'flex items-center pr-2 text-lg';
     return (
         <div className="my-5">
-            <h2 className="text-3xl underline">Seeker Site Issues</h2>
+            <h2 className="text-3xl">
+                Seeker Site Issues
+                <label className='text-sm'>
+                    <select className='mx-2 text-black rounded' onChange={e => (setIssueType(e.target.value))}>
+                        <option defaultValue value="all">All</option>
+                        {
+                            ['status', 'time', 'no-link', 'timeout', 'bad_url'].map(issue => (
+                                <option value={issue}>{issue}</option>
+                            ))
+                        }
+                    </select>
+                    : Issue Type
+                </label>
+            </h2>
             <div className="flex">
                 <label className={checkboxStyle}>
                     <input type='checkbox' checked={showSolo} onChange={(e) => (setShowSolo(e.target.checked))}/>
