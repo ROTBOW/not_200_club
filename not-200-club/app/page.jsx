@@ -4,16 +4,20 @@ import Link from 'next/link';
 import getRecent from '@/firebase/getRecent';
 import SeekerList from '@/components/seekerList';
 import LargeOut from '@/components/largeOut';
+import { getNames } from '@/utils/utils';
+import { SeekerProvider } from '@/context/seekerContext';
 
 
 const Home = () => {
   const [coachData, setCoachData] = useState({});
   const [currCoach, setCurrCoach] = useState('none');
+  const [seenSeekers, setSeenSeekers] = useState(new Set());
 
   useEffect(() => {
     getRecent()
     .then(res => {
-      setCoachData(res);
+      setCoachData(res[0]);
+      setSeenSeekers(getNames(res[1]))
     })
   }, [])
 
@@ -29,16 +33,20 @@ const Home = () => {
   };
 
   const coachOutput = () => {
-      if (currCoach === 'none') return <div className='p-5'>Select coach</div>;
+      if (currCoach.toLowerCase() === 'none') return <div className='p-5'>Select coach</div>;
       let coach = coachData[currCoach];
 
       return (
-        <>
-          <SeekerList coachData={coach}/>
+        <SeekerProvider>
+          <SeekerList coachData={coach} seenSeekers={seenSeekers}/>
           <LargeOut coachData={coach}/>
-        </>
+        </SeekerProvider>
       )
   };
+
+  if (seenSeekers.size === 0) {
+    return <div>loading...</div>
+  }
 
   return (
     <main className='px-5'>
