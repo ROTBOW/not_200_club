@@ -6,17 +6,17 @@ import { filterSeekersByProject } from "@/utils/utils";
 
 
 const LargeOut = ({coachData}) => {
-
-    const [message, setMessage] = useState('')
+    // using context to control what projects we're showing, along with the issue type
     const { showSolo, showCapstone, showGroup, issueType } = useSeeker();
+    const [message, setMessage] = useState('')
 
-    useEffect(() => {
+    useEffect(() => { // updating the message if we change the filters at all
         setMessage(genMessage())
     }, [coachData, showSolo, showCapstone, showGroup, issueType])
 
     const genMessage = () => {
 
-        let data = filterSeekersByProject(
+        let data = filterSeekersByProject( // this filters the data based on the project and or type
             coachData,
             {solo: showSolo, capstone: showCapstone, group: showGroup},
             issueType

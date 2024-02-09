@@ -6,6 +6,7 @@ import Image from 'next/image';
 import copy from '@/public/content_copy.svg';
 
 const SeekerList = ({coachData, seenSeekers}) => {
+    // using context to control what projects we're showing, along with the issue type
     const { showSolo, setShowSolo, showCapstone, setShowCapstone, showGroup, setShowGroup, issueType, setIssueType } = useSeeker();
 
     const createSingleDiscordMessage = (projs, seeker) => {
@@ -26,6 +27,11 @@ const SeekerList = ({coachData, seenSeekers}) => {
         }
     }
 
+    /**
+     * The function `handleCopyEmails` copies all non-empty email values from elements with the class
+     * name 'email-container' and joins them into a single string, which is then copied to the
+     * clipboard.
+     */
     const handleCopyEmails = (e) => {
         let emailsEles = document.getElementsByClassName('email-container');
         let emails = [];
@@ -40,10 +46,10 @@ const SeekerList = ({coachData, seenSeekers}) => {
         alert('Copied all emails')
     }
 
-    const seekers = () => {
+    const seekers = () => { // this function creates each seeker's row for the table
         let s = [];
         
-        let data = filterSeekersByProject(
+        let data = filterSeekersByProject( // this filters the data based on the project and or type
             coachData,
             {solo: showSolo, capstone: showCapstone, group: showGroup},
             issueType
