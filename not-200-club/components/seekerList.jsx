@@ -1,4 +1,3 @@
-
 import { assignDangerLevel } from '@/utils/seekerListUtils';
 import { parseIssues, filterSeekersByProject } from "@/utils/utils"
 import { useSeeker } from '@/context/seekerContext';
@@ -37,13 +36,13 @@ const SeekerList = ({coachData, seenSeekers}) => {
         let emails = [];
 
         for (let ele of emailsEles) {
-            if (ele.value !== 'n\\a') {
+            if (ele.tagName.toLowerCase() === 'input' && ele.value !== 'n/a') {
                 emails.push(ele.value);
             }
         }
 
         navigator.clipboard.writeText(emails.join(' '));
-        alert('Copied all emails')
+        alert('Copied all emails');
     }
 
     const seekers = () => { // this function creates each seeker's row for the table
@@ -60,7 +59,7 @@ const SeekerList = ({coachData, seenSeekers}) => {
             let solo = Object.values(coachData[seeker]['solo']);
             let cap = Object.values(coachData[seeker]['capstone']);
             let group = Object.values(coachData[seeker]['group']);
-            let email = data[seeker].email ? data[seeker].email : 'n\\a'
+            let email = data[seeker].email ? data[seeker].email : 'n/a'
 
             const rowStyle = 'p-2 border max-w-44 h-1 overflow-auto whitespace-nowrap';
             

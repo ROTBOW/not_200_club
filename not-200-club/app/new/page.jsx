@@ -26,7 +26,6 @@ const UploadData = () => {
             
             addHealthCheck(data)
             .then(res => {
-                console.log(res);
                 if (res.result) {
                     alert('Upload Success')
                 }

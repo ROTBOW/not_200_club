@@ -5,7 +5,7 @@ const db = getFirestore(firebase_app)
 
 /**
  * 
- * @param {*} data a json string, that will be uploaded to firestore
+ * @param {*} data - a json string, that will be uploaded to firestore
  * @returns the result and or error from trying to upload seeker data
  */
 export default async function addHealthCheck(data) {
