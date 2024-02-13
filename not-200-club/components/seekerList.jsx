@@ -116,6 +116,7 @@ const SeekerList = ({coachData, seenSeekers}) => {
                     <input type='checkbox' checked={showGroup} onChange={(e) => (setShowGroup(e.target.checked))}/>
                     Group
                 </label>
+                <div className='flex items-center underline ml-4'>Total Seekers With Issues: {Object.keys(coachData).length}</div>
             </div>
 
             <table className="mt-2 p-5 border rounded">
