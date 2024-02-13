@@ -55,7 +55,7 @@ const Home = () => {
       <label>
         Coach: &ensp;
         <select className='text-black' onChange={(e) => (setCurrCoach(e.target.value))}>
-          <option defaultValue>None</option>
+          <option value="none">None</option>
           {createCoaches()}
         </select>
       </label>

@@ -38,7 +38,7 @@ const PieIssues = ({eleId, title, data}) => {
         };
 
         var ctx = document.getElementById(eleId).getContext("2d");
-        window.myLine = new Chart(ctx, config);
+        window[eleId+'ID'] = new Chart(ctx, config);
     }, [])
 
     return (
