@@ -61,6 +61,7 @@ const Home = () => {
       </label>
 
       <Link href="new" className='fixed top-5 right-6 rounded p-1 bg-gray-800 hover:bg-slate-600 transition-all'>Upload(Josiah Only)</Link>
+      <Link href="statistics" className='fixed top-14 right-6 rounded p-1 bg-gray-800 hover:bg-slate-600 transition-all'>Statistics(For Anna)</Link>
 
       <div className='flex justify-center'>
         {coachOutput()}
