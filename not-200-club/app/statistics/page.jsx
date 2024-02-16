@@ -1,15 +1,16 @@
 'use client'
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import getLastSixMonths from '@/firebase/getLastSixMonths';
+import getLastSixReports from '@/firebase/getLastSixReports';
 import StatAllIssues from '@/components/charts/statAllIssues';
 import PieIssues from '@/components/charts/pieIssues';
+import ProjectSummary from '@/components/projectSummary';
 
 const Stats = () => {
     const [data, setData] = useState(null);
 
     useEffect(() => {
-        getLastSixMonths()
+        getLastSixReports()
         .then(res => {
             setData(res);
         })
@@ -61,6 +62,11 @@ const Stats = () => {
             <h2 className="text-2xl">Here are those numbers for you Anna :)<br/>Hope your day is going well</h2>
 
             <StatAllIssues solo={getIssueCount('solo')} capstone={getIssueCount('capstone')} group={getIssueCount('group')}/>
+            <div className='flex mb-2'>
+                <ProjectSummary project={'solo'} currData={getProjectIssues(data[0], 'solo')} lastData={getProjectIssues(data[1], 'solo')}/>
+                <ProjectSummary project={'capstone'} currData={getProjectIssues(data[0], 'capstone')} lastData={getProjectIssues(data[1], 'capstone')}/>
+                <ProjectSummary project={'group'} currData={getProjectIssues(data[0], 'group')} lastData={getProjectIssues(data[1], 'group')}/>
+            </div>
             <div className='flex mb-2'>
                 <PieIssues eleId='pie1' title="Current Report - Solo" data={getProjectIssues(data[0], 'solo')}/>
                 <PieIssues eleId='pie2' title="Current Report - Capstone" data={getProjectIssues(data[0], 'capstone')}/>

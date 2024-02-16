@@ -6,18 +6,21 @@ import SeekerList from '@/components/seekerList';
 import LargeOut from '@/components/largeOut';
 import { getNames } from '@/utils/utils';
 import { SeekerProvider } from '@/context/seekerContext';
+import { Timestamp } from 'firebase/firestore';
 
 
 const Home = () => {
   const [coachData, setCoachData] = useState({});
   const [currCoach, setCurrCoach] = useState('none');
   const [seenSeekers, setSeenSeekers] = useState(new Set());
+  const [ranDate, setRanDate] = useState(Timestamp.now());
 
   useEffect(() => {
     getRecent()
     .then(res => {
       setCoachData(res[0]);
       setSeenSeekers(getNames(res[1]))
+      setRanDate(res[0].date)
     })
   }, [])
 
@@ -52,6 +55,7 @@ const Home = () => {
     <main className='px-5'>
       <h1 className="pt-5 text-2xl text-red-500 font-mono ">Not 200 Club</h1>
       <h2 className="text-xl text-red-500 font-mono">a/A site health check</h2>
+      <h3 className='text-xl text-red-500 font-mono'>REPORT TIMESTAMP: {ranDate.toDate().toString()}</h3>
       <label>
         Coach: &ensp;
         <select className='text-black' onChange={(e) => (setCurrCoach(e.target.value))}>

@@ -43,7 +43,7 @@ const PieIssues = ({eleId, title, data}) => {
 
     return (
         <div className='bg-gray-700 rounded mx-2' style={{width: '26rem'}}>
-            <h2 className='p-3 text-xl font-semibold'>{title}</h2>
+            <h2 className='p-2 text-xl font-semibold'>{title}</h2>
             <div className="relative h-450-px">
               <canvas id={eleId} className='h-64'></canvas>
             </div>
