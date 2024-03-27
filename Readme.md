@@ -1,13 +1,17 @@
 # Not 200 Club
 
-This script processes an xlsx file located in the target directory. The directory must contain only this file. If the directory does not exist, it must be created manually.
+This script processes an xlsx file located in the target directory. If this directory does not exist, the script will create it. which will cause the script to throw an empty target folder error since the newly created target folder will be empty. 
 
 The xlsx file, which can have any name, must adhere to a specific format:<br/>
-`Seeker Name, Coach, Status, solo url, capstone url, group url`
+`Seeker Name, Coach, Status, solo url, capstone url, group url, email`
+for example the file would look like this:
+| Placement: Placement Name | Owner Name  | Status   | Student Account: Solo Project Live Link | Student Account: Capstone Project Live Link | Student Account: Group Project Live Link | Email         |
+|---------------------------|-------------|----------|-----------------------------------------|---------------------------------------------|------------------------------------------|---------------|
+| John Smith                | Josiah Leon | Greenlit | https://fakeurl.com/                    | https://fakeurl2.com/                       | fakeurl3.com                             | fake@mail.com |
 
-The file should be exported as a "details only" xlsx file, an option available in SF.
+The file should be exported as a "details only" xlsx file, an option available in salesforce for reports.
 
-The output is directed to a 'res' directory. If this directory does not exist, the script will create it. The output file is generated only after the script has finished executing.
+The script outputs to the 'res' directory. If this directory does not exist, the script will create it. The output file is generated only after the script has finished executing.
 
 ## Instructions:
 1. Place the xlsx file in the target directory. Ensure it is the only file in the directory.
@@ -19,7 +23,6 @@ The output is directed to a 'res' directory. If this directory does not exist, t
 - The script's runtime is approximately one hour, this time will vary depending on the amount of cpu cores on the machine and the amount of seekers
 - The script will save after each coach, if it fails it will have all data up to the last coach it finished
 - The output file is generated in the 'res' directory upon script completion.
-- The script will create the 'res' directory if it does not exist.
 
 <br/><br/><br/>
 

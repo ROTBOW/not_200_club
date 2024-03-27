@@ -220,11 +220,8 @@ class Not200Club:
         
         bold_font = openpyxl.styles.Font(bold=True)
         
-        sheet.cell(row=1, column=1, value="Seeker Name").font = bold_font
-        sheet.cell(row=1, column=2, value="Seeker Status").font = bold_font
-        sheet.cell(row=1, column=3, value="Solo Issues").font = bold_font
-        sheet.cell(row=1, column=4, value="Capstone Issues").font = bold_font
-        sheet.cell(row=1, column=5, value="Group Issues").font = bold_font
+        for index, header in enumerate(["Seeker Name", "Seeker Status", "Solo Issues", "Capstone Issues", "Group Issues"], start=1):
+            sheet.cell(row=1, column=index, value=header).font = bold_font
         
         return sheet
     

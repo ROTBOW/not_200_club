@@ -1,0 +1,12 @@
+-i https://pypi.org/simple
+about-time==4.2.1; python_version >= '3.7' and python_version < '4'
+alive-progress==3.1.5
+certifi==2023.11.17; python_version >= '3.6'
+charset-normalizer==3.3.2; python_full_version >= '3.7.0'
+et-xmlfile==1.1.0; python_version >= '3.6'
+grapheme==0.6.0
+idna==3.6; python_version >= '3.5'
+openpyxl==3.1.2
+python-dotenv==1.0.0
+requests==2.31.0
+urllib3==2.1.0; python_version >= '3.8'
