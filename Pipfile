@@ -8,6 +8,7 @@ requests = "*"
 openpyxl = "*"
 alive-progress = "*"
 python-dotenv = "*"
+firebase-admin = "*"
 
 [dev-packages]
 
