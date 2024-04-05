@@ -6,6 +6,7 @@ from datetime import date, datetime, timedelta
 from statistics import mean, median, mode
 from time import time
 from warnings import simplefilter
+from upload import Uploader
 
 import json
 import requests
@@ -353,6 +354,10 @@ class Not200Club:
         
         with open(os.path.join(RES, f'{"not200club "+str(date.today())}.json'), 'w') as file:
             json.dump(self.all_coach_issues, file)
+            
+    def __upload_json(self) -> None:
+        up = Uploader()
+        up.upload_data()
     
     def main(self) -> None:
         """
@@ -366,6 +371,7 @@ class Not200Club:
             self.__fill_overview()
             self.workbook.save(self.output_path)
             self.__output_json()
+            self.__upload_json()
         
     @classmethod
     def validate(cls) -> None:
