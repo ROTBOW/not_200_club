@@ -355,7 +355,7 @@ class Not200Club:
         with open(os.path.join(RES, f'{"not200club "+str(date.today())}.json'), 'w') as file:
             json.dump(self.all_coach_issues, file)
             
-    def upload_json(self) -> None:
+    def __upload_json(self) -> None:
         up = Uploader()
         up.upload_data()
     

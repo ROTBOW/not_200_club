@@ -61,6 +61,9 @@ class Uploader:
         print('data sent!')
     
 if __name__ == '__main__':
-    raise Exception('uploader is not ran directly, it must be imported to be used!')
-    # up = Uploader()
-    # up.upload_data()
+    print('this will send the most recent json to the data, do you want to continue?')
+    ans = input('-> ')
+    if ans.strip().lower() in ['y', 'yes']:
+        print('uploading')
+        up = Uploader()
+        up.upload_data()
