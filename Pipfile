@@ -11,6 +11,7 @@ python-dotenv = "*"
 firebase-admin = "*"
 
 [dev-packages]
+isort = "*"
 
 [requires]
 python_version = "3.11"
