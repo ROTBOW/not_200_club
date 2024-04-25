@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Constants
-DIR = os.path.dirname(os.path.realpath(__file__))
+DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 RES = os.path.join(DIR, 'res')
 
 

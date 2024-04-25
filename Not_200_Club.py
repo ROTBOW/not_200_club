@@ -1,17 +1,18 @@
+import json
 import os
 import re
 from collections import defaultdict as ddict
 from concurrent.futures import ThreadPoolExecutor
-from datetime import date, datetime, timedelta
-from statistics import mean, median, mode
+from datetime import date, timedelta
 from time import time
 from warnings import simplefilter
-from upload import Uploader
 
-import json
+import openpyxl
 import requests
 from alive_progress import alive_bar
-import openpyxl
+
+from upload import Uploader
+from util.data_to_xlsx import DTX
 
 # Constants
 DIR = os.path.dirname(os.path.realpath(__file__))
@@ -20,28 +21,55 @@ RES = os.path.join(DIR, 'res')
 
 class Not200Club:
     
+    @classmethod
+    def validate(cls) -> None:
+        """
+        The function `validate` checks if the necessary folders exist, if the target folder is not
+        empty, if the first file in the target folder is not a `.DS_Store` file, and if the file in the
+        target folder is an `.xlsx` file.
+        """
+        
+        # Creating output(res) folder if it doesn't exist
+        if not os.path.isdir(RES):
+            os.mkdir(RES)
+            
+        # Creating target folder if it doesn't exist
+        if not os.path.isdir(TARGET):
+            os.mkdir(TARGET)
+            
+        # Check that the target file has is not empty
+        def empty_check() -> None:
+            if len(os.listdir(TARGET)) == 0:
+                raise Exception('TARGET ERROR - The target folder needs to have one report file in it!')
+        empty_check()
+        
+        # Check if the first file in target is ds_store and remove it if so
+        if os.listdir(TARGET)[0] == '.DS_Store':
+            os.remove(os.path.join(TARGET, '.DS_Store'))
+            # check if empty again if we remove the ds_store
+            empty_check()
+            
+        # Checks that the target file is an xlsx file
+        if not os.listdir(TARGET)[0].endswith('.xlsx'):
+            raise Exception(f'INVALID FILE TYPE ERROR - The current file in the target folder is a bad type! it\'s not a xlsx file!\nTrying to read: ({os.listdir(TARGET)[0]})')
+    
     def __init__(self, timeout = None) -> None:
         """
-        This is the initialization function for a class that takes a workbook and optional timeout
-        parameter, and initializes various data structures and variables.
+        The function initializes various data structures and variables for tracking statistics related
+        to coaching sites and seekers.
         
-        :param workbook: This parameter is an object representing an Excel workbook. It is used to store
-        and manipulate data in an Excel file
-        :param timeout: The timeout parameter is an optional argument that can be passed to the
-        constructor of an object. It specifies the maximum amount of time (in seconds) that the object
-        should wait for a response before timing out. If no response is received within the specified
-        timeout period, an exception is raised.
+        :param timeout: The `timeout` parameter in the `__init__` method is used to specify a timeout
+        value for the instance. This value can be used to set a time limit for certain operations or
+        processes within the class. If a timeout value is provided when initializing an instance of the
+        class, it will be
         """
-        self.workbook = openpyxl.Workbook()
-        self.workbook.remove(self.workbook.active)
-        
+        self.dtx = DTX()
         self.data = list()
         self.sites_by_coach = ddict(lambda: ddict(dict))
         self.all_coach_issues = dict()
         self.timeout = timeout
         self.total_seekers = 0
-        self.start_time = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
-        self.output_path = os.path.join(RES, f'{"not200club "+str(date.today())}.xlsx')
+        
         
         overview_init = lambda: {'solo': 0, 'capstone': 0, 'group': 0}
         self.overview = {
@@ -207,32 +235,6 @@ class Not200Club:
         
         return all_issues
     
-    def __create_coach_sheet(self, coach:str):
-        """
-        The function creates a new sheet in a workbook with specified bolded column headers and returns the
-        sheet.
-        
-        :param coach: The "coach" parameter is a string that represents the name of the coach for whom
-        the sheet is being created
-        :type coach: str
-        :return: a sheet object.
-        """
-        sheet = self.workbook.create_sheet(title=coach)
-        
-        bold_font = openpyxl.styles.Font(bold=True)
-        
-        for index, header in enumerate(["Seeker Name", "Seeker Status", "Solo Issues", "Capstone Issues", "Group Issues"], start=1):
-            sheet.cell(row=1, column=index, value=header).font = bold_font
-        
-        return sheet
-    
-    
-    def __fit_to_data(self, sheet):
-        for column_cells in sheet.columns:
-            length = max(len(str(cell.value)) for cell in column_cells)
-            length = min(length, 200)  # Limit column width to 200
-            sheet.column_dimensions[column_cells[0].column_letter].width = length
-    
     
     def __test_urls_and_write_to_xlsx(self) -> None:
         """
@@ -240,105 +242,10 @@ class Not200Club:
         information to an Excel file.
         """
 
-        # for coach in ['Alex Mak']:
+        # for coach in ['Josiah Leon']:
         for coach in self.sites_by_coach:
-            row = 2
-            sheet = self.__create_coach_sheet(coach)
             self.all_coach_issues[coach] = self.__threading_get_all_issues(coach)
-            
-            
-            if self.all_coach_issues[coach]:
-                for seeker, issues in self.all_coach_issues[coach].items():
-                    status = self.sites_by_coach[coach][seeker]['status']
-                    self.overview['seeker_with_issue'] += 1
-                    
-                    col = 3
-                    sheet.cell(row=row, column=1, value=seeker)
-                    sheet.cell(row=row, column=2, value=status)
-                    for proj in ['solo', 'capstone', 'group']:
-                        if issues[proj]:
-                            val = '\n'.join([f"{key}: {value}" for key, value in issues[proj].items()])
-                        else:
-                            val = 'No Issues Found'
-                            
-                        sheet.cell(row=row, column=col, value=val)
-                        col += 1
-                    row += 1
-                    
-            self.__fit_to_data(sheet)
-                
-            self.workbook.save(self.output_path)
-                
-    def __fill_overview(self) -> None:
-        """
-        This function fills in an Excel sheet with various statistics related to website loading issues.
-        """
-        sheet = self.workbook.create_sheet(title='Overview', index=0)
-        
-        sheet.cell(row=1, column=1, value='TOTAL SEEKERS WITH ISSUES')
-        sheet.cell(row=1, column=2, value=f"{self.overview['seeker_with_issue']}/{self.total_seekers}")
-        sheet.cell(row=1, column=4, value=f'Script ran at {self.start_time} for this sheet')
-        
-        sheet.cell(row=2, column=1, value='SITES WITH TIMES 10s>')
-        sheet.cell(row=2, column=2, value=f'Total: {sum(self.overview["sites_time"].values())}')
-        sheet.cell(row=2, column=3, value=f'Solo: {self.overview["sites_time"]["solo"]}')
-        sheet.cell(row=2, column=4, value=f'Capstone: {self.overview["sites_time"]["capstone"]}')
-        sheet.cell(row=2, column=5, value=f'Group: {self.overview["sites_time"]["group"]}')
-        
-        sheet.cell(row=3, column=1, value='LOADING TIME STATS')
-        if self.overview['time_average']:
-            sheet.cell(row=3, column=2, value=f'Mean: {round(mean(self.overview["time_average"]), 2)}s')
-            sheet.cell(row=3, column=3, value=f'Mode: {round(mode(self.overview["time_average"]), 2)}s')
-            sheet.cell(row=3, column=4, value=f'Median: {round(median(self.overview["time_average"]), 2)}s')
-        else:
-            sheet.cell(row=3, column=2, value='No loading issues found')
-            
-        
-        if self.timeout:
-            sheet.cell(row=4, column=1, value='SITES THAT TIMEOUT')
-            sheet.cell(row=4, column=2, value=f"Total: {sum(self.overview['sites_timeout'].values())}")
-            sheet.cell(row=4, column=3, value=f"Solo: {self.overview['sites_timeout']['solo']}")
-            sheet.cell(row=4, column=4, value=f"Capstone: {self.overview['sites_timeout']['capstone']}")
-            sheet.cell(row=4, column=5, value=f"Group: {self.overview['sites_timeout']['group']}")
-        else:
-            sheet.cell(row=4, column=1, value='TIMEOUT NOT SET')
-            
-        for row, group, key in [(5, 'SITES WITH NO URLS', 'sites_no_url'), (6, "SITES WITH BAD URLS", 'sites_bad_url'), (7, 'SITES WITH BAD STATUS', 'sites_status')]:
-            sheet.cell(row=row, column=1, value=group)
-            sheet.cell(row=row, column=2, value=f"Total: {sum(self.overview[key].values())}")
-            sheet.cell(row=row, column=3, value=f"Solo: {self.overview[key]['solo']}")
-            sheet.cell(row=row, column=4, value=f"Capstone: {self.overview[key]['capstone']}")
-            sheet.cell(row=row, column=5, value=f"Group: {self.overview[key]['group']}")
-            
-        self.__fit_to_data(sheet)
-        
-    def __fill_issue_legend(self) -> None:
-        """
-        This function creates a legend sheet in a workbook with explanations for different types of
-        issues that can occur while checking a website.
-        """
-        sheet = self.workbook.create_sheet(title='Issue Legend', index=0)
-        
-        sheet.cell(row=1, column=1, value='Issue Type')
-        sheet.cell(row=1, column=2, value="Explained")
-        sheet.cell(row=1, column=3, value=f'Script ran at {self.start_time} for this sheet')
-        
-        sheet.cell(row=2, column=1, value='Status')
-        sheet.cell(row=2, column=2, value='Will most likely be a 404 or a 503 - both mean the site is down')
-        
-        sheet.cell(row=3, column=1, value='Bad URL')
-        sheet.cell(row=3, column=2, value='The site\'s URL doesn\'t work, The script was unable to even try to check it')
-        
-        sheet.cell(row=4, column=1, value='Time')
-        sheet.cell(row=4, column=2, value='The amount of time in seconds it took to get a response from the site - it needs to have taken longer than 10s to be listed')
-        
-        sheet.cell(row=5, column=1, value='Timeout')
-        sheet.cell(row=5, column=2, value=f'The site took longer than the given timeout({self.timeout}s) and gave up on the site')
-        
-        sheet.cell(row=6, column=1, value='No-link')
-        sheet.cell(row=6, column=2, value='Means there was no url listed in saleforce for that project')
-
-        self.__fit_to_data(sheet)
+            self.dtx.write_coach_sheet(coach, self.all_coach_issues[coach], self.sites_by_coach, self.overview)
         
     def __output_json(self) -> None:
                         
@@ -356,6 +263,9 @@ class Not200Club:
             json.dump(self.all_coach_issues, file)
             
     def __upload_json(self) -> None:
+        """
+        This method uploads the most recent JSON data to firebase.
+        """
         up = Uploader()
         up.upload_data()
     
@@ -367,43 +277,11 @@ class Not200Club:
         if self.__validation_check():
             self.__grab_data_from_file()
             self.__test_urls_and_write_to_xlsx()
-            self.__fill_issue_legend()
-            self.__fill_overview()
-            self.workbook.save(self.output_path)
+            self.dtx.fill_issue_legend(self.timeout)
+            self.dtx.fill_overview(self.overview, self.total_seekers, self.timeout)
+            self.dtx.save()
             self.__output_json()
             self.__upload_json()
-        
-    @classmethod
-    def validate(cls) -> None:
-        """
-        The function `validate` checks if the necessary folders exist, if the target folder is not
-        empty, if the first file in the target folder is not a `.DS_Store` file, and if the file in the
-        target folder is an `.xlsx` file.
-        """
-        
-        # Creating output(res) folder if it doesn't exist
-        if not os.path.isdir(RES):
-            os.mkdir(RES)
-            
-        # Creating target folder if it doesn't exist
-        if not os.path.isdir(TARGET):
-            os.mkdir(TARGET)
-            
-        # Check that the target file has is not empty
-        def empty_check() -> None:
-            if len(os.listdir(TARGET)) == 0:
-                raise Exception('TARGET ERROR - The target folder needs to have one report file in it!')
-        empty_check()
-        
-        # Check if the first file in target is ds_store and remove it if so
-        if os.listdir(TARGET)[0] == '.DS_Store':
-            os.remove(os.path.join(TARGET, '.DS_Store'))
-            # check if empty again if we remove the ds_store
-            empty_check()
-            
-        # Checks that the target file is an xlsx file
-        if not os.listdir(TARGET)[0].endswith('.xlsx'):
-            raise Exception(f'INVALID FILE TYPE ERROR - The current file in the target folder is a bad type! it\'s not a xlsx file!\nTrying to read: ({os.listdir(TARGET)[0]})')
  
 
 if __name__ == '__main__':

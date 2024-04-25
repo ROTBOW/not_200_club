@@ -3,12 +3,12 @@ This is script is ran by the n2c script on completion to upload the most recent 
 to firestore for the frontend.
 '''
 
-import os
 import json
-from dotenv import load_dotenv
+import os
+
 import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import firestore
+from dotenv import load_dotenv
+from firebase_admin import credentials, firestore
 
 # loading the local .env file
 load_dotenv()
