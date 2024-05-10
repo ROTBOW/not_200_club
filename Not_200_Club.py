@@ -3,7 +3,7 @@ import os
 import re
 from collections import defaultdict as ddict
 from concurrent.futures import ThreadPoolExecutor
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from time import time
 from warnings import simplefilter
 
@@ -258,6 +258,8 @@ class Not200Club:
                     for issue in self.all_coach_issues[coach][seeker][proj]:
                         if isinstance(self.all_coach_issues[coach][seeker][proj][issue], timedelta):
                             self.all_coach_issues[coach][seeker][proj][issue] = str(self.all_coach_issues[coach][seeker][proj][issue].total_seconds())
+        
+        self.all_coach_issues['date'] = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
         
         with open(os.path.join(RES, f'{"not200club "+str(date.today())}.json'), 'w') as file:
             json.dump(self.all_coach_issues, file)
