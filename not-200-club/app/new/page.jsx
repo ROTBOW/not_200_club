@@ -39,7 +39,7 @@ const UploadData = () => {
         <div className="flex justify-around mt-5">
             <div className='w-2/5 pl-5'>
                 <Link href='/' className="rounded p-1 bg-gray-800 hover:bg-slate-600 transition-all">Home</Link>
-                <p className='py-5'>Upload health json file</p>
+                <p className='py-5'>Manual upload health json file in case the auto upload isn't working</p>
                 <label className='p-5'>
                     Password&ensp;
                     <input type='password' className='text-black' onChange={(e)=>{setPass(e.target.value)}}/>

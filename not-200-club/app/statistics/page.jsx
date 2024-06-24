@@ -59,7 +59,6 @@ const Stats = () => {
     return (
         <div className='flex flex-col items-center my-10'>
             <Link href="/" className='fixed top-5 right-6 rounded p-1 bg-gray-800 hover:bg-slate-600 transition-all'>Home</Link>
-            <h2 className="text-2xl">Here are those numbers for you Anna :)<br/>Hope your day is going well</h2>
 
             <StatAllIssues solo={getIssueCount('solo')} capstone={getIssueCount('capstone')} group={getIssueCount('group')}/>
             <div className='flex mb-2'>
