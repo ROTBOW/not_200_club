@@ -61,6 +61,13 @@ const SeekerList = ({coachData, seenSeekers}) => {
             let group = Object.values(coachData[seeker]['group']);
             let email = data[seeker].email ? data[seeker].email : 'n/a'
 
+            // covering emails for privacy of the old seekers
+            let n = email.length
+            email = ''
+            for (let i = 0; i < n; i++) {
+                email += '▮'
+            }
+
             const rowStyle = 'p-2 border max-w-44 h-1 overflow-auto whitespace-nowrap';
             
             s.push(
@@ -68,7 +75,7 @@ const SeekerList = ({coachData, seenSeekers}) => {
                     <td className={`p-2 border ${(seenSeekers.has(seeker.toLowerCase())) ? 'seeker-bad' : ''}`}>{seeker}</td>
                     <td className={rowStyle}>
                         <input 
-                            className='bg-black w-full email-container'
+                            className='w-full bg-black email-container'
                             onClick={e => e.target.select()}
                             value={email}
                         />
@@ -76,8 +83,8 @@ const SeekerList = ({coachData, seenSeekers}) => {
                     {showSolo && <td className={`${rowStyle} ${assignDangerLevel(solo)}`}>{parseIssues(solo)}</td>}
                     {showCapstone && <td className={`${rowStyle} ${assignDangerLevel(cap)}`}>{parseIssues(cap)}</td>}
                     {showGroup && <td className={`${rowStyle} ${assignDangerLevel(group)}`}>{parseIssues(group)}</td>}
-                    <td className="p-2 border flex justify-center h-full">
-                        <button className="w-full h-full rounded bg-gray-800 hover:bg-slate-600 transition-all" onClick={createSingleDiscordMessage(coachData[seeker], seeker)}>Copy</button>
+                    <td className="flex justify-center h-full p-2 border">
+                        <button className="w-full h-full transition-all bg-gray-800 rounded hover:bg-slate-600" onClick={createSingleDiscordMessage(coachData[seeker], seeker)}>Copy</button>
                     </td>
                 </tr>
             )
@@ -116,14 +123,14 @@ const SeekerList = ({coachData, seenSeekers}) => {
                     <input type='checkbox' checked={showGroup} onChange={(e) => (setShowGroup(e.target.checked))}/>
                     Group
                 </label>
-                <div className='flex items-center underline ml-4'>Total Seekers With Issues: {Object.keys(coachData).length}</div>
+                <div className='flex items-center ml-4 underline'>Total Seekers With Issues: {Object.keys(coachData).length}</div>
             </div>
 
-            <table className="mt-2 p-5 border rounded">
+            <table className="p-5 mt-2 border rounded">
                 <tbody>
                     <tr>
-                        <th className="p-2 border w-64">Seeker Name</th>
-                        <th className="p-2 border w-52 h-full">
+                        <th className="w-64 p-2 border">Seeker Name</th>
+                        <th className="h-full p-2 border w-52">
                             Email
                             <button onClick={handleCopyEmails}><Image src={copy} className='ml-2'/></button>
                         </th>
